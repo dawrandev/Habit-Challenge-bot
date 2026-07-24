@@ -1,0 +1,95 @@
+{
+  "nav": {
+    "home": "Asosiy",
+    "battle": "Battle",
+    "activity": "Faoliyat",
+    "chat": "Chat",
+    "profile": "Profil"
+  },
+  "common": {
+    "you": "Sen"
+  },
+  "battle": {
+    "duel": "1v1 · Duel",
+    "endsIn": "Tugashiga",
+    "timeLeft": "{{d}}k {{h}}s",
+    "byChallenge": "Challenge'lar bo'yicha",
+    "expectedToday": "Bugun sendan kutilyapti",
+    "done": "Bajarildi",
+    "needProof": "Isbot kerak",
+    "todayProof": "Bugungi isbot",
+    "ahead": "Sen {{count}} ochko oldindasan 🔥",
+    "behind": "Sen {{count}} ochko ortdasan",
+    "tied": "Hisob teng"
+  },
+  "home": {
+    "title": "Battle'laring",
+    "new": "Yangi battle",
+    "empty": "Hali faol battle yo'q. Do'stingni chaqir!"
+  },
+  "activity": {
+    "title": "Faoliyat",
+    "empty": "Hozircha ish yo'q.",
+    "toVerify": "Tekshiruving kutilyapti",
+    "yourReports": "Sening hisobotlaring"
+  },
+  "chat": {
+    "title": "Suhbatlar",
+    "empty": "Hali xabar yo'q."
+  },
+  "profile": {
+    "title": "Profil",
+    "language": "Til",
+    "stats": "Statistika",
+    "archive": "Tugallangan battle'lar"
+  },
+  "proof": {
+    "title": "Bugungi isbot",
+    "hint": "Kamerani challenge'ga qarat va suratga ol",
+    "capture": "Suratga ol",
+    "retake": "Qayta",
+    "submit": "Yuborish",
+    "sending": "Yuborilmoqda…",
+    "sent": "Yuborildi!",
+    "permissionTitle": "Kamera ruxsati kerak",
+    "permissionBody": "Isbot faqat jonli kamera bilan olinadi. Brauzer sozlamalaridan kameraga ruxsat ber.",
+    "noCamera": "Qurilmangda kamera topilmadi.",
+    "cancel": "Bekor"
+  },
+  "verify": {
+    "title": "Tekshirish",
+    "question": "Bajarildimi?",
+    "approve": "Tasdiqlash",
+    "reject": "Rad etish",
+    "dispute": "Nizo",
+    "submittedAt": "Yuborilgan"
+  },
+  "weekdays": ["Du", "Se", "Cho", "Pa", "Ju", "Sh", "Ya"],
+  "create": {
+    "title": "Yangi battle",
+    "battleName": "Battle nomi",
+    "battleNamePlaceholder": "masalan: Iyul dueli",
+    "period": "Davr",
+    "week1": "1 hafta",
+    "week2": "2 hafta",
+    "month1": "1 oy",
+    "startTomorrow": "Ertadan boshlansin",
+    "chooseChallenges": "Challenge'larni tanla",
+    "custom": "O'zim",
+    "customPlaceholder": "Challenge nomi",
+    "everyDay": "Har kuni",
+    "certainDays": "Muayyan kunlar",
+    "create": "Yaratish va taklif",
+    "needChallenge": "Kamida 1 ta challenge tanla",
+    "inviteTitle": "Battle yaratildi! 🎉",
+    "inviteBody": "Bu havolani do'stingga yubor:",
+    "copy": "Havolani nusxalash",
+    "copied": "Nusxalandi!"
+  },
+  "chat2": { "send": "Yuborish", "placeholder": "Xabar…" },
+  "tpl": {
+    "read": "O'qish",
+    "sport": "Sport",
+    "earlyRise": "Erta turish"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "nav": {
+    "home": "Home",
+    "battle": "Battle",
+    "activity": "Activity",
+    "chat": "Chat",
+    "profile": "Profile"
+  },
+  "common": {
+    "you": "You"
+  },
+  "battle": {
+    "duel": "1v1 · Duel",
+    "endsIn": "Ends in",
+    "timeLeft": "{{d}}d {{h}}h",
+    "byChallenge": "By challenge",
+    "expectedToday": "Expected from you today",
+    "done": "Done",
+    "needProof": "Proof needed",
+    "todayProof": "Today's proof",
+    "ahead": "You're ahead by {{count}} 🔥",
+    "behind": "You're behind by {{count}}",
+    "tied": "Neck and neck"
+  },
+  "home": {
+    "title": "Your battles",
+    "new": "New battle",
+    "empty": "No active battles yet. Challenge a friend!"
+  },
+  "activity": {
+    "title": "Activity",
+    "empty": "Nothing to do right now.",
+    "toVerify": "Waiting for your check",
+    "yourReports": "Your reports"
+  },
+  "chat": {
+    "title": "Chats",
+    "empty": "No messages yet."
+  },
+  "profile": {
+    "title": "Profile",
+    "language": "Language",
+    "stats": "Statistics",
+    "archive": "Finished battles"
+  },
+  "proof": {
+    "title": "Today's proof",
+    "hint": "Point the camera at your challenge and capture",
+    "capture": "Capture",
+    "retake": "Retake",
+    "submit": "Send",
+    "sending": "Sending…",
+    "sent": "Sent!",
+    "permissionTitle": "Camera access needed",
+    "permissionBody": "Proof is captured only with the live camera. Allow camera access in your browser settings.",
+    "noCamera": "No camera found on your device.",
+    "cancel": "Cancel"
+  },
+  "verify": {
+    "title": "Verify",
+    "question": "Completed?",
+    "approve": "Approve",
+    "reject": "Reject",
+    "dispute": "Dispute",
+    "submittedAt": "Submitted"
+  },
+  "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  "create": {
+    "title": "New battle",
+    "battleName": "Battle name",
+    "battleNamePlaceholder": "e.g. July duel",
+    "period": "Period",
+    "week1": "1 week",
+    "week2": "2 weeks",
+    "month1": "1 month",
+    "startTomorrow": "Start tomorrow",
+    "chooseChallenges": "Choose challenges",
+    "custom": "Custom",
+    "customPlaceholder": "Challenge name",
+    "everyDay": "Every day",
+    "certainDays": "Certain days",
+    "create": "Create & invite",
+    "needChallenge": "Pick at least 1 challenge",
+    "inviteTitle": "Battle created! 🎉",
+    "inviteBody": "Send this link to your friend:",
+    "copy": "Copy link",
+    "copied": "Copied!"
+  },
+  "chat2": { "send": "Send", "placeholder": "Message…" },
+  "tpl": {
+    "read": "Reading",
+    "sport": "Sport",
+    "earlyRise": "Early rise"
+  }
+}

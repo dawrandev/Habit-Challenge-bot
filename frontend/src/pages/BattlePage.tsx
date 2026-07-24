@@ -1,0 +1,277 @@
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import PageTransition from '../components/PageTransition'
+import { useBattle, useToday, type PlayerScore } from '../lib/api'
+
+/* Ball 0 dan nishonga sanalib chiqadi */
+function useCountUp(target: number, duration = 1000) {
+  const [val, setVal] = useState(0)
+  const raf = useRef(0)
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setVal(target)
+      return
+    }
+    const start = performance.now()
+    const tick = (now: number) => {
+      const p = Math.min((now - start) / duration, 1)
+      setVal(+(target * (1 - Math.pow(1 - p, 3))).toFixed(1))
+      if (p < 1) raf.current = requestAnimationFrame(tick)
+    }
+    raf.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf.current)
+  }, [target, duration])
+  return val
+}
+
+function fmt(n: number) {
+  return Number.isInteger(n) ? String(n) : n.toFixed(1)
+}
+
+function timeLeft(endDate: string) {
+  const end = new Date(`${endDate}T23:59:59`)
+  const secs = Math.max((end.getTime() - Date.now()) / 1000, 0)
+  return { d: Math.floor(secs / 86400), h: Math.floor((secs % 86400) / 3600) }
+}
+
+function Avatar({ initials, color }: { initials: string; color: 'you' | 'rival' }) {
+  const ring = color === 'you' ? 'ring-you' : 'ring-rival'
+  const text = color === 'you' ? 'text-you' : 'text-rival'
+  return (
+    <div
+      className={`grid h-12 w-12 place-items-center rounded-full bg-surface-2 ring-2 ${ring} ${text} font-display text-xl`}
+    >
+      {initials}
+    </div>
+  )
+}
+
+function ScoreNumber({
+  value,
+  color,
+  leading,
+}: {
+  value: number
+  color: 'you' | 'rival'
+  leading: boolean
+}) {
+  const display = useCountUp(value)
+  const base = 'font-display text-6xl leading-none tabular'
+  if (leading) {
+    return (
+      <span className={`${base} ${color === 'you' ? 'flame-you' : 'flame-rival'}`}>
+        {fmt(display)}
+      </span>
+    )
+  }
+  const dim =
+    color === 'you'
+      ? 'text-you/70 drop-shadow-[0_0_10px_rgba(246,176,30,0.25)]'
+      : 'text-rival/70 drop-shadow-[0_0_10px_rgba(124,92,255,0.25)]'
+  return <span className={`${base} ${dim}`}>{fmt(display)}</span>
+}
+
+function TugOfWar({ you, rival }: { you: number; rival: number }) {
+  const total = Math.max(you + rival, 1)
+  const youPct = Math.round((you / total) * 100)
+  const leading = you >= rival ? 'you' : 'rival'
+  return (
+    <div className="relative">
+      <div className="flex h-4 w-full overflow-hidden rounded-full bg-surface-2">
+        <div
+          className={`h-full transition-[width] duration-700 ease-out ${leading === 'you' ? 'bar-breathe-you' : ''}`}
+          style={{ width: `${youPct}%`, background: 'linear-gradient(90deg,#b5810f,#f6b01e)' }}
+        />
+        <div
+          className={`h-full flex-1 transition-[width] duration-700 ease-out ${leading === 'rival' ? 'bar-breathe-rival' : ''}`}
+          style={{ background: 'linear-gradient(90deg,#7c5cff,#4a37a0)' }}
+        />
+      </div>
+      <div
+        className="absolute top-1/2 h-6 w-0.5 -translate-y-1/2 rounded bg-text/70"
+        style={{ left: `${youPct}%` }}
+      />
+    </div>
+  )
+}
+
+function statusChip(status: string | null, t: (k: string) => string) {
+  if (status === 'approved' || status === 'auto_approved')
+    return { cls: 'bg-approve/15 text-approve', label: `✓ ${t('battle.done')}` }
+  if (status === 'pending')
+    return { cls: 'bg-muted/15 text-muted', label: '⏳' }
+  if (status === 'rejected')
+    return { cls: 'bg-reject/15 text-reject', label: `✕ ${t('verify.reject')}` }
+  return { cls: 'bg-you/15 text-you', label: t('battle.needProof') }
+}
+
+export default function BattlePage() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { t } = useTranslation()
+  const { data, isLoading } = useBattle(id!)
+  const { data: today } = useToday(id!)
+
+  if (isLoading || !data) {
+    return (
+      <PageTransition>
+        <div className="grid flex-1 place-items-center text-muted">
+          <div className="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-you" />
+        </div>
+      </PageTransition>
+    )
+  }
+
+  const me: PlayerScore | undefined =
+    data.players.find((p) => p.is_me) ?? data.players[0]
+  const rival: PlayerScore | undefined =
+    data.players.find((p) => !p.is_me) ?? data.players[1]
+  const myScore = me?.score ?? 0
+  const rivalScore = rival?.score ?? 0
+  const diff = myScore - rivalScore
+  const tl = timeLeft(data.battle.end_date)
+
+  const statusText =
+    diff > 0
+      ? t('battle.ahead', { count: fmt(Math.abs(diff)) })
+      : diff < 0
+        ? t('battle.behind', { count: fmt(Math.abs(diff)) })
+        : t('battle.tied')
+
+  const nameOf = (key: string | null, name: string) =>
+    key ? t(`tpl.${key}`) : name || '—'
+
+  return (
+    <PageTransition>
+      <header className="flex items-center justify-between px-5 pt-6 pb-4">
+        <div>
+          <p className="text-xs tracking-[0.2em] text-muted uppercase">
+            {t('battle.duel')}
+          </p>
+          <h1 className="font-display text-2xl">{data.battle.title}</h1>
+        </div>
+        <div className="rounded-full border border-line bg-surface px-3 py-1.5 text-right">
+          <p className="text-[10px] tracking-wide text-muted uppercase">
+            {t('battle.endsIn')}
+          </p>
+          <p className="tabular font-mono text-sm text-you">
+            {t('battle.timeLeft', { d: tl.d, h: tl.h })}
+          </p>
+        </div>
+      </header>
+
+      <section className="rise-in px-5" style={{ animationDelay: '0.02s' }}>
+        <div className="rounded-3xl border border-line bg-surface p-5 shadow-2xl shadow-black/40">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col items-center gap-2">
+              <Avatar initials={t('common.you')[0]} color="you" />
+              <span className="text-xs text-muted">{t('common.you')}</span>
+            </div>
+            <div className="flex items-end gap-3">
+              <ScoreNumber value={myScore} color="you" leading={diff >= 0} />
+              <span className="mb-2 font-display text-lg text-muted">vs</span>
+              <ScoreNumber value={rivalScore} color="rival" leading={diff < 0} />
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Avatar
+                initials={(rival?.user.first_name ?? '?')[0]}
+                color="rival"
+              />
+              <span className="text-xs text-muted">
+                {rival?.user.first_name ?? '—'}
+              </span>
+            </div>
+          </div>
+          <div className="mt-5">
+            <TugOfWar you={myScore} rival={rivalScore} />
+            <p className="mt-2 text-center text-xs text-muted">{statusText}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Batafsil */}
+      <section className="rise-in px-5 pt-6" style={{ animationDelay: '0.12s' }}>
+        <h2 className="mb-1 text-xs tracking-[0.18em] text-muted uppercase">
+          {t('battle.byChallenge')}
+        </h2>
+        <div className="divide-y divide-line rounded-2xl border border-line bg-surface px-4">
+          {data.challenges.map((ch) => {
+            const y = me?.breakdown?.[ch.id] ?? 0
+            const r = rival?.breakdown?.[ch.id] ?? 0
+            const total = Math.max(y + r, 1)
+            const youLead = y >= r
+            return (
+              <div key={ch.id} className="flex items-center gap-3 py-2.5">
+                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-lg">
+                  {ch.icon}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="truncate text-sm font-medium">
+                      {nameOf(ch.template_key, ch.name)}
+                    </span>
+                    <span className="tabular font-mono text-sm">
+                      <span className={youLead ? 'text-you' : 'text-muted'}>{y}</span>
+                      <span className="mx-1 text-muted">—</span>
+                      <span className={!youLead ? 'text-rival' : 'text-muted'}>{r}</span>
+                    </span>
+                  </div>
+                  <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
+                    <div
+                      className="h-full bg-you"
+                      style={{ width: `${(y / total) * 100}%` }}
+                    />
+                    <div className="h-full flex-1 bg-rival" />
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* Bugun kutilyapti */}
+      <section className="rise-in px-5 pt-6" style={{ animationDelay: '0.22s' }}>
+        <h2 className="mb-2 text-xs tracking-[0.18em] text-muted uppercase">
+          {t('battle.expectedToday')}
+        </h2>
+        <div className="space-y-2">
+          {today?.map((task) => {
+            const chip = statusChip(task.status, t)
+            const done =
+              task.status === 'approved' || task.status === 'auto_approved'
+            return (
+              <button
+                key={task.challenge.id}
+                type="button"
+                disabled={done}
+                onClick={() =>
+                  navigate(`/battle/${data.battle.id}/proof/${task.challenge.id}`)
+                }
+                className="flex w-full items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-left transition active:scale-[0.98] disabled:opacity-60"
+              >
+                <span className="text-lg">{task.challenge.icon}</span>
+                <span className="flex-1 text-sm">
+                  {nameOf(task.challenge.template_key, task.challenge.name)}
+                </span>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-medium ${chip.cls}`}
+                >
+                  {chip.label}
+                </span>
+              </button>
+            )
+          })}
+          {today && today.length === 0 && (
+            <p className="rounded-2xl border border-line bg-surface px-4 py-4 text-sm text-muted">
+              {t('activity.empty')}
+            </p>
+          )}
+        </div>
+      </section>
+
+      <div className="h-6" />
+    </PageTransition>
+  )
+}

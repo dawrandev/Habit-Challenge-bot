@@ -1,0 +1,95 @@
+{
+  "nav": {
+    "home": "Ana sayfa",
+    "battle": "Düello",
+    "activity": "Etkinlik",
+    "chat": "Sohbet",
+    "profile": "Profil"
+  },
+  "common": {
+    "you": "Sen"
+  },
+  "battle": {
+    "duel": "1'e 1 · Düello",
+    "endsIn": "Bitişe",
+    "timeLeft": "{{d}}g {{h}}s",
+    "byChallenge": "Meydan okumalara göre",
+    "expectedToday": "Bugün senden bekleniyor",
+    "done": "Tamamlandı",
+    "needProof": "Kanıt gerekli",
+    "todayProof": "Bugünkü kanıt",
+    "ahead": "{{count}} önde gidiyorsun 🔥",
+    "behind": "{{count}} geridesin",
+    "tied": "Skor eşit"
+  },
+  "home": {
+    "title": "Düellolarım",
+    "new": "Yeni düello",
+    "empty": "Henüz aktif düello yok. Bir arkadaşına meydan oku!"
+  },
+  "activity": {
+    "title": "Etkinlik",
+    "empty": "Şu an yapılacak bir şey yok.",
+    "toVerify": "Kontrolünü bekliyor",
+    "yourReports": "Raporların"
+  },
+  "chat": {
+    "title": "Sohbetler",
+    "empty": "Henüz mesaj yok."
+  },
+  "profile": {
+    "title": "Profil",
+    "language": "Dil",
+    "stats": "İstatistik",
+    "archive": "Biten düellolar"
+  },
+  "proof": {
+    "title": "Bugünkü kanıt",
+    "hint": "Kamerayı meydan okumana doğrult ve çek",
+    "capture": "Çek",
+    "retake": "Tekrar",
+    "submit": "Gönder",
+    "sending": "Gönderiliyor…",
+    "sent": "Gönderildi!",
+    "permissionTitle": "Kamera izni gerekli",
+    "permissionBody": "Kanıt yalnızca canlı kamerayla alınır. Tarayıcı ayarlarından kamera iznini ver.",
+    "noCamera": "Cihazında kamera bulunamadı.",
+    "cancel": "İptal"
+  },
+  "verify": {
+    "title": "Doğrula",
+    "question": "Tamamlandı mı?",
+    "approve": "Onayla",
+    "reject": "Reddet",
+    "dispute": "İtiraz",
+    "submittedAt": "Gönderildi"
+  },
+  "weekdays": ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
+  "create": {
+    "title": "Yeni düello",
+    "battleName": "Düello adı",
+    "battleNamePlaceholder": "örn. Temmuz düellosu",
+    "period": "Süre",
+    "week1": "1 hafta",
+    "week2": "2 hafta",
+    "month1": "1 ay",
+    "startTomorrow": "Yarın başla",
+    "chooseChallenges": "Meydan okuma seç",
+    "custom": "Özel",
+    "customPlaceholder": "Meydan okuma adı",
+    "everyDay": "Her gün",
+    "certainDays": "Belirli günler",
+    "create": "Oluştur ve davet et",
+    "needChallenge": "En az 1 meydan okuma seç",
+    "inviteTitle": "Düello oluşturuldu! 🎉",
+    "inviteBody": "Bu bağlantıyı arkadaşına gönder:",
+    "copy": "Bağlantıyı kopyala",
+    "copied": "Kopyalandı!"
+  },
+  "chat2": { "send": "Gönder", "placeholder": "Mesaj…" },
+  "tpl": {
+    "read": "Okuma",
+    "sport": "Spor",
+    "earlyRise": "Erken kalkma"
+  }
+}
