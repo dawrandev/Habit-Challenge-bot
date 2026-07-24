@@ -1,5 +1,6 @@
 """aiogram bot — polling (SPEC.md §1). Rasm Telegram'da saqlanadi (§10)."""
 
+import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
@@ -89,5 +90,23 @@ async def send_message(chat_id: int, text: str) -> None:
 
 
 async def run_polling() -> None:
-    log.info("Bot polling boshlandi")
-    await dp.start_polling(get_bot())
+    bot = get_bot()
+    # Webhook o'chirish + eski updatelarni tashlash (konflikt oldini oladi)
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+    except Exception as e:  # noqa: BLE001
+        log.warning("delete_webhook: %s", e)
+
+    # Chidamli polling: xatolikda qayta urinadi, shutdown'da to'xtaydi
+    while True:
+        try:
+            log.info("Bot polling boshlandi")
+            await dp.start_polling(bot, handle_signals=False)
+            log.info("Polling normal tugadi")
+            break
+        except asyncio.CancelledError:
+            log.info("Polling to'xtatildi (shutdown)")
+            break
+        except Exception as e:  # noqa: BLE001
+            log.error("Polling xatosi: %r — 5s dan keyin qayta urinaman", e)
+            await asyncio.sleep(5)
