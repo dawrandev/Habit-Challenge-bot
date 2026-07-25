@@ -1,14 +1,26 @@
 import os
+import ssl
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# SSL: ba'zi serverlarda Python tizim CA'sini topa olmaydi (aiohttp "self-signed
-# certificate" xatosi), garchi curl ishlasa ham. certifi CA to'plamiga yo'naltiramiz.
+# SSL: ba'zi serverlarda Python tizim CA'sini topa olmaydi ("self-signed certificate"
+# xatosi), garchi curl ishlasa ham. Barcha SSL kontekstlarni MAJBURAN certifi CA
+# to'plamiga o'tkazamiz — aiohttp/aiogram ham shuni ishlatadi.
 try:
     import certifi
 
-    os.environ["SSL_CERT_FILE"] = certifi.where()
-    os.environ["SSL_CERT_DIR"] = os.path.dirname(certifi.where())
+    _CA = certifi.where()
+    os.environ.setdefault("SSL_CERT_FILE", _CA)
+    os.environ.setdefault("SSL_CERT_DIR", os.path.dirname(_CA))
+
+    _orig_create_ctx = ssl.create_default_context
+
+    def _certifi_create_ctx(*args, **kwargs):
+        if not (kwargs.get("cafile") or kwargs.get("capath") or kwargs.get("cadata")):
+            kwargs["cafile"] = _CA
+        return _orig_create_ctx(*args, **kwargs)
+
+    ssl.create_default_context = _certifi_create_ctx
 except Exception:  # noqa: BLE001
     pass
 
