@@ -2,6 +2,8 @@
 
 import asyncio
 import logging
+import os
+import ssl
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -22,11 +24,39 @@ _bot: Bot | None = None
 dp = Dispatcher()
 
 
+def _bot_ssl_context() -> ssl.SSLContext:
+    """Bot uchun SSL konteksti.
+
+    aiogram default holda certifi ishlatadi, lekin ba'zi serverlarda tarmoq maxsus
+    root bilan TLS'ni ushlaydi (curl=tizim CA ishlaydi, certifi=ishlamaydi). Shuning
+    uchun TIZIM CA bundle'ini ishlatamiz. BOT_SSL_INSECURE=1 bo'lsa — tekshiruvsiz.
+    """
+    if os.environ.get("BOT_SSL_INSECURE") == "1":
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        return ctx
+    for path in (
+        "/etc/ssl/certs/ca-certificates.crt",  # Debian/Ubuntu (curl shu bilan ishlaydi)
+        "/etc/pki/tls/certs/ca-bundle.crt",    # RHEL/CentOS
+        "/etc/ssl/cert.pem",                   # Alpine/macOS
+    ):
+        if os.path.isfile(path):
+            return ssl.create_default_context(cafile=path)
+    return ssl.create_default_context()
+
+
 def get_bot() -> Bot:
     global _bot
     if _bot is None:
+        from aiogram.client.session.aiohttp import AiohttpSession
+
+        # aiogram default certifi'ni tizim CA (yoki tekshiruvsiz) bilan almashtiramiz
+        session = AiohttpSession()
+        session._connector_init["ssl"] = _bot_ssl_context()
         _bot = Bot(
             settings.bot_token,
+            session=session,
             default=DefaultBotProperties(parse_mode="HTML"),
         )
     return _bot
