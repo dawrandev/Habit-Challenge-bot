@@ -3,26 +3,29 @@ import ssl
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# SSL: ba'zi serverlarda Python tizim CA'sini topa olmaydi ("self-signed certificate"
-# xatosi), garchi curl ishlasa ham. Barcha SSL kontekstlarni MAJBURAN certifi CA
-# to'plamiga o'tkazamiz — aiohttp/aiogram ham shuni ishlatadi.
-try:
-    import certifi
+# SSL: Python default/certifi tizimga qo'shilgan maxsus root'ni topa olmaydi
+# ("self-signed certificate"), garchi curl ishlasa ham. Shuning uchun aynan TIZIM
+# CA bazasini ishlatamiz (curl aynan shuni ishlatadi). Bu barcha aiohttp/aiogram
+# ulanishlariga ta'sir qiladi.
+_SYSTEM_CA_CANDIDATES = [
+    "/etc/ssl/certs/ca-certificates.crt",  # Debian/Ubuntu
+    "/etc/pki/tls/certs/ca-bundle.crt",    # RHEL/CentOS
+    "/etc/ssl/cert.pem",                   # Alpine/macOS
+]
+_CA = next((p for p in _SYSTEM_CA_CANDIDATES if os.path.isfile(p)), None)
+if _CA:
+    try:
+        os.environ.setdefault("SSL_CERT_FILE", _CA)
+        _orig_create_ctx = ssl.create_default_context
 
-    _CA = certifi.where()
-    os.environ.setdefault("SSL_CERT_FILE", _CA)
-    os.environ.setdefault("SSL_CERT_DIR", os.path.dirname(_CA))
+        def _system_create_ctx(*args, **kwargs):
+            if not (kwargs.get("cafile") or kwargs.get("capath") or kwargs.get("cadata")):
+                kwargs["cafile"] = _CA
+            return _orig_create_ctx(*args, **kwargs)
 
-    _orig_create_ctx = ssl.create_default_context
-
-    def _certifi_create_ctx(*args, **kwargs):
-        if not (kwargs.get("cafile") or kwargs.get("capath") or kwargs.get("cadata")):
-            kwargs["cafile"] = _CA
-        return _orig_create_ctx(*args, **kwargs)
-
-    ssl.create_default_context = _certifi_create_ctx
-except Exception:  # noqa: BLE001
-    pass
+        ssl.create_default_context = _system_create_ctx
+    except Exception:  # noqa: BLE001
+        pass
 
 
 class Settings(BaseSettings):
