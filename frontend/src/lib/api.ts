@@ -214,6 +214,21 @@ export function useCreateBattle() {
   })
 }
 
+export function useAddChallenge(battleId: number | string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (c: ChallengeInput) =>
+      apiFetch(`/battles/${battleId}/challenges`, {
+        method: 'POST',
+        body: JSON.stringify(c),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['battle', String(battleId)] })
+      qc.invalidateQueries({ queryKey: ['today', String(battleId)] })
+    },
+  })
+}
+
 export function useDisputeMut() {
   const qc = useQueryClient()
   return useMutation({

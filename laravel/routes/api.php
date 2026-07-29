@@ -24,6 +24,7 @@ Route::middleware('tg.auth')->group(function () {
     Route::post('/battles/{token}/accept', [BattleController::class, 'accept']);
     Route::get('/battles/{battle}', [BattleController::class, 'show']);
     Route::get('/battles/{battle}/today', [BattleController::class, 'today']);
+    Route::post('/battles/{battle}/challenges', [BattleController::class, 'addChallenge']);
     Route::get('/battles/{battle}/messages', [ChatController::class, 'index']);
     Route::post('/battles/{battle}/messages', [ChatController::class, 'store']);
 

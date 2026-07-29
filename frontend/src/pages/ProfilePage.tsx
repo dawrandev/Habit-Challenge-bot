@@ -2,16 +2,15 @@ import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
 import { SUPPORTED, LANG_LABELS, setLang, type Lang } from '../i18n'
-
-const stats = [
-  { label: 'W', value: 7, color: 'text-approve' },
-  { label: 'L', value: 3, color: 'text-reject' },
-  { label: '🔥', value: 12, color: 'text-you' },
-]
+import { useMe } from '../lib/api'
 
 export default function ProfilePage() {
   const { t, i18n } = useTranslation()
   const current = i18n.language as Lang
+  const { data: me } = useMe()
+
+  const name = me?.first_name || t('common.you')
+  const initial = (name[0] ?? '?').toUpperCase()
 
   return (
     <PageTransition>
@@ -19,26 +18,25 @@ export default function ProfilePage() {
         <h1 className="font-display text-2xl">{t('profile.title')}</h1>
       </header>
 
-      {/* Profil kartochkasi */}
+      {/* Profil kartochkasi — Telegram profili */}
       <section className="px-5">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-4 rounded-3xl border border-line bg-surface p-5"
         >
-          <div className="grid h-16 w-16 place-items-center rounded-full bg-surface-2 font-display text-2xl text-you ring-2 ring-you">
-            S
+          <div className="avatar-glow-you grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-surface-2 font-display text-2xl text-you ring-2 ring-you">
+            {me?.photo_url ? (
+              <img src={me.photo_url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              initial
+            )}
           </div>
           <div className="flex-1">
-            <p className="font-display text-xl">{t('common.you')}</p>
-            <div className="mt-1 flex gap-4">
-              {stats.map((s) => (
-                <span key={s.label} className="text-sm">
-                  <span className={`font-display ${s.color}`}>{s.value}</span>{' '}
-                  <span className="text-muted">{s.label}</span>
-                </span>
-              ))}
-            </div>
+            <p className="font-display text-xl">{name}</p>
+            {me?.username && (
+              <p className="text-sm text-muted">@{me.username}</p>
+            )}
           </div>
         </motion.div>
       </section>

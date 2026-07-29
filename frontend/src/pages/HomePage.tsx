@@ -103,8 +103,11 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex h-2 w-full overflow-hidden rounded-full bg-surface-2">
-                  <div className="h-full bg-you" style={{ width: `${youPct}%` }} />
-                  <div className="h-full flex-1 bg-rival" />
+                  <div
+                    className="bar-breathe-you h-full bg-you"
+                    style={{ width: `${youPct}%` }}
+                  />
+                  <div className="bar-breathe-rival h-full flex-1 bg-rival" />
                 </div>
               </Link>
             </motion.div>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
+import AddChallengeModal from '../components/AddChallengeModal'
 import { useBattle, useToday, type PlayerScore } from '../lib/api'
 
 /* Ball 0 dan nishonga sanalib chiqadi */
@@ -35,14 +36,27 @@ function timeLeft(endDate: string) {
   return { d: Math.floor(secs / 86400), h: Math.floor((secs % 86400) / 3600) }
 }
 
-function Avatar({ initials, color }: { initials: string; color: 'you' | 'rival' }) {
+function Avatar({
+  initials,
+  color,
+  photo,
+}: {
+  initials: string
+  color: 'you' | 'rival'
+  photo?: string | null
+}) {
   const ring = color === 'you' ? 'ring-you' : 'ring-rival'
   const text = color === 'you' ? 'text-you' : 'text-rival'
+  const glow = color === 'you' ? 'avatar-glow-you' : 'avatar-glow-rival'
   return (
     <div
-      className={`grid h-12 w-12 place-items-center rounded-full bg-surface-2 ring-2 ${ring} ${text} font-display text-xl`}
+      className={`grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-surface-2 ring-2 ${ring} ${text} ${glow} font-display text-xl`}
     >
-      {initials}
+      {photo ? (
+        <img src={photo} alt="" className="h-full w-full object-cover" />
+      ) : (
+        initials
+      )}
     </div>
   )
 }
@@ -66,25 +80,22 @@ function ScoreNumber({
     )
   }
   const dim =
-    color === 'you'
-      ? 'text-you/70 drop-shadow-[0_0_10px_rgba(246,176,30,0.25)]'
-      : 'text-rival/70 drop-shadow-[0_0_10px_rgba(124,92,255,0.25)]'
+    color === 'you' ? 'text-you glow-pulse-you' : 'text-rival glow-pulse-rival'
   return <span className={`${base} ${dim}`}>{fmt(display)}</span>
 }
 
 function TugOfWar({ you, rival }: { you: number; rival: number }) {
   const total = Math.max(you + rival, 1)
   const youPct = Math.round((you / total) * 100)
-  const leading = you >= rival ? 'you' : 'rival'
   return (
     <div className="relative">
       <div className="flex h-4 w-full overflow-hidden rounded-full bg-surface-2">
         <div
-          className={`h-full transition-[width] duration-700 ease-out ${leading === 'you' ? 'bar-breathe-you' : ''}`}
+          className="bar-breathe-you h-full transition-[width] duration-700 ease-out"
           style={{ width: `${youPct}%`, background: 'linear-gradient(90deg,#b5810f,#f6b01e)' }}
         />
         <div
-          className={`h-full flex-1 transition-[width] duration-700 ease-out ${leading === 'rival' ? 'bar-breathe-rival' : ''}`}
+          className="bar-breathe-rival h-full flex-1 transition-[width] duration-700 ease-out"
           style={{ background: 'linear-gradient(90deg,#7c5cff,#4a37a0)' }}
         />
       </div>
@@ -112,6 +123,7 @@ export default function BattlePage() {
   const { t } = useTranslation()
   const { data, isLoading } = useBattle(id!)
   const { data: today } = useToday(id!)
+  const [addOpen, setAddOpen] = useState(false)
 
   if (isLoading || !data) {
     return (
@@ -165,21 +177,26 @@ export default function BattlePage() {
         <div className="rounded-3xl border border-line bg-surface p-5 shadow-2xl shadow-black/40">
           <div className="flex items-center justify-between">
             <div className="flex flex-col items-center gap-2">
-              <Avatar initials={t('common.you')[0]} color="you" />
+              <Avatar
+                initials={t('common.you')[0]}
+                color="you"
+                photo={me?.user.photo_url}
+              />
               <span className="text-xs text-muted">{t('common.you')}</span>
             </div>
             <div className="flex items-end gap-3">
               <ScoreNumber value={myScore} color="you" leading={diff >= 0} />
-              <span className="mb-2 font-display text-lg text-muted">vs</span>
+              <span className="vs-pulse mb-2 font-display text-lg text-muted">vs</span>
               <ScoreNumber value={rivalScore} color="rival" leading={diff < 0} />
             </div>
             <div className="flex flex-col items-center gap-2">
               <Avatar
                 initials={(rival?.user.first_name ?? '?')[0]}
                 color="rival"
+                photo={rival?.user.photo_url}
               />
               <span className="text-xs text-muted">
-                {rival?.user.first_name ?? '—'}
+                {rival?.user.username ? `@${rival.user.username}` : rival?.user.first_name ?? '—'}
               </span>
             </div>
           </div>
@@ -192,9 +209,18 @@ export default function BattlePage() {
 
       {/* Batafsil */}
       <section className="rise-in px-5 pt-6" style={{ animationDelay: '0.12s' }}>
-        <h2 className="mb-1 text-xs tracking-[0.18em] text-muted uppercase">
-          {t('battle.byChallenge')}
-        </h2>
+        <div className="mb-1 flex items-center justify-between">
+          <h2 className="text-xs tracking-[0.18em] text-muted uppercase">
+            {t('battle.byChallenge')}
+          </h2>
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            className="rounded-full bg-you/15 px-3 py-1 text-xs font-semibold text-you transition active:scale-95"
+          >
+            ＋ Challenge
+          </button>
+        </div>
         <div className="divide-y divide-line rounded-2xl border border-line bg-surface px-4">
           {data.challenges.map((ch) => {
             const y = me?.breakdown?.[ch.id] ?? 0
@@ -272,6 +298,12 @@ export default function BattlePage() {
       </section>
 
       <div className="h-6" />
+
+      <AddChallengeModal
+        battleId={data.battle.id}
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+      />
     </PageTransition>
   )
 }

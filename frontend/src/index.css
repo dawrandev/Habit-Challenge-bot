@@ -171,7 +171,79 @@ body {
   animation: bar-breathe-you 2.6s ease-in-out infinite;
 }
 .bar-breathe-rival {
-  animation: bar-breathe-rival 2.6s ease-in-out infinite;
+  animation: bar-breathe-rival 2.9s ease-in-out infinite;
+}
+
+/* Avatar glow — ikkala rang nafas oladi */
+@keyframes avatar-glow-you {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(246, 176, 30, 0);
+  }
+  50% {
+    box-shadow: 0 0 16px 2px rgba(246, 176, 30, 0.4);
+  }
+}
+@keyframes avatar-glow-rival {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(124, 92, 255, 0);
+  }
+  50% {
+    box-shadow: 0 0 16px 2px rgba(124, 92, 255, 0.45);
+  }
+}
+.avatar-glow-you {
+  animation: avatar-glow-you 2.8s ease-in-out infinite;
+}
+.avatar-glow-rival {
+  animation: avatar-glow-rival 3.1s ease-in-out infinite;
+}
+
+/* Yetakchi bo'lmagan ball ham jonli — mayin rangli puls */
+@keyframes glow-pulse-you {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(246, 176, 30, 0.2));
+    opacity: 0.72;
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(246, 176, 30, 0.5));
+    opacity: 0.95;
+  }
+}
+@keyframes glow-pulse-rival {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(124, 92, 255, 0.25));
+    opacity: 0.72;
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(124, 92, 255, 0.55));
+    opacity: 0.95;
+  }
+}
+.glow-pulse-you {
+  animation: glow-pulse-you 2.7s ease-in-out infinite;
+}
+.glow-pulse-rival {
+  animation: glow-pulse-rival 3s ease-in-out infinite;
+}
+
+/* "vs" mayin lipillashi */
+@keyframes vs-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+.vs-pulse {
+  animation: vs-pulse 2.4s ease-in-out infinite;
 }
 
 /* Kartochkalar pastdan ko'tarilib chiqishi (stagger) */

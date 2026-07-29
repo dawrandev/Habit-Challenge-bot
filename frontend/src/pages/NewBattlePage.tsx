@@ -4,12 +4,7 @@ import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
 import { useCreateBattle, type ChallengeInput } from '../lib/api'
-
-const TEMPLATES = [
-  { key: 'read', icon: '📖' },
-  { key: 'sport', icon: '🏃' },
-  { key: 'earlyRise', icon: '🌅' },
-]
+import { ICON_SET, TEMPLATES } from '../lib/challenges'
 
 const PERIODS = [
   { days: 7, key: 'week1' },
@@ -27,6 +22,7 @@ export default function NewBattlePage() {
   const [startTomorrow, setStartTomorrow] = useState(true)
   const [items, setItems] = useState<ChallengeInput[]>([])
   const [custom, setCustom] = useState('')
+  const [customIcon, setCustomIcon] = useState<string>('📖')
   const [token, setToken] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -45,9 +41,10 @@ export default function NewBattlePage() {
     if (!name) return
     setItems((cur) => [
       ...cur,
-      { template_key: null, name, icon: '🎯', cadence: 'daily', weekdays: [] },
+      { template_key: null, name, icon: customIcon, cadence: 'daily', weekdays: [] },
     ])
     setCustom('')
+    setCustomIcon('📖')
   }
 
   function setCadence(idx: number, cadence: 'daily' | 'weekly_days') {
@@ -224,7 +221,21 @@ export default function NewBattlePage() {
             })}
           </div>
 
-          {/* Custom qo'shish */}
+          {/* Custom qo'shish — icon tanlash */}
+          <div className="mb-2 grid grid-cols-8 gap-1.5">
+            {ICON_SET.map((em) => (
+              <button
+                key={em}
+                type="button"
+                onClick={() => setCustomIcon(em)}
+                className={`grid aspect-square place-items-center rounded-xl text-lg transition ${
+                  customIcon === em ? 'bg-you/20 ring-2 ring-you' : 'bg-surface-2'
+                }`}
+              >
+                {em}
+              </button>
+            ))}
+          </div>
           <div className="flex gap-2">
             <input
               value={custom}
@@ -236,9 +247,9 @@ export default function NewBattlePage() {
             <button
               type="button"
               onClick={addCustom}
-              className="rounded-2xl border border-line bg-surface px-4 text-you"
+              className="rounded-2xl border border-line bg-surface px-4 text-xl text-you"
             >
-              ＋
+              {customIcon}
             </button>
           </div>
         </div>

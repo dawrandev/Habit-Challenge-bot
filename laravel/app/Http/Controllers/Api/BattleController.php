@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AddChallengeRequest;
 use App\Http\Requests\CreateBattleRequest;
 use App\Models\Battle;
+use App\Services\BattleAccess;
 use App\Services\BattleService;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class BattleController extends Controller
 {
@@ -47,5 +50,14 @@ class BattleController extends Controller
     public function today(Request $request, Battle $battle)
     {
         return $this->battles->todayTasks($battle, $request->user());
+    }
+
+    public function addChallenge(AddChallengeRequest $request, Battle $battle, BattleAccess $access)
+    {
+        if (! $access->isParticipant($battle->id, $request->user()->id)) {
+            throw new AccessDeniedHttpException('Ruxsat yo\'q');
+        }
+
+        return $this->battles->addChallenge($request->user(), $battle, $request->validated());
     }
 }

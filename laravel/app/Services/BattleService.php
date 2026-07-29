@@ -17,7 +17,11 @@ use Illuminate\Support\Str;
 
 class BattleService
 {
-    public function __construct(private readonly ScoringService $scoring) {}
+    public function __construct(
+        private readonly ScoringService $scoring,
+        private readonly BattleAccess $access,
+        private readonly \App\Services\Telegram\NotificationService $notifications,
+    ) {}
 
     /**
      * @param  array<int, array{template_key: ?string, name: string, icon: string, cadence: string, weekdays: array<int>}>  $challenges
@@ -52,6 +56,33 @@ class BattleService
         }
 
         return $battle->fresh();
+    }
+
+    /**
+     * Mavjud battle'ga yangi challenge qo'shadi (SPEC §19–20) — o'sha kundan kuchga kiradi.
+     *
+     * @param  array{template_key: ?string, name: string, icon: string, cadence: string, weekdays: array<int>}  $data
+     */
+    public function addChallenge(User $user, Battle $battle, array $data): Challenge
+    {
+        $start = Clock::todayLocal();
+
+        $challenge = $battle->challenges()->create([
+            'template_key' => $data['template_key'] ?? null,
+            'name' => $data['name'] ?? '',
+            'icon' => $data['icon'] ?? '🎯',
+            'cadence' => $data['cadence'] ?? Cadence::Daily->value,
+            'weekdays' => $data['weekdays'] ?? [],
+            'start_date' => $start->toDateString(),
+        ]);
+
+        $label = $challenge->name !== '' ? $challenge->name : ($data['template_key'] ?? 'challenge');
+        $this->notifications->notify(
+            $this->access->otherTelegramIds($battle->id, $user->id),
+            "➕ {$user->first_name} yangi challenge qo'shdi: {$challenge->icon} {$label}",
+        );
+
+        return $challenge;
     }
 
     public function acceptByToken(User $user, string $token): Battle
