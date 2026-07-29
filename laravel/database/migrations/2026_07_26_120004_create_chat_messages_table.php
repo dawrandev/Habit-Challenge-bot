@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('battle_id')->constrained('battles')->cascadeOnDelete();
             $table->foreignId('sender_id')->nullable()->constrained('users')->nullOnDelete(); // null=tizim
             $table->string('kind')->default('text');  // 'text' | 'event'
-            $table->text('text')->default('');
+            $table->text('text')->nullable();          // MySQL TEXT default bermaydi
             $table->timestamps();
         });
     }
