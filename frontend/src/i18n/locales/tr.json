@@ -87,6 +87,14 @@
     "copied": "Kopyalandı!"
   },
   "chat2": { "send": "Gönder", "placeholder": "Mesaj…" },
+  "invite": {
+    "title": "Düello daveti",
+    "by": "sana meydan okuyor",
+    "accept": "Kabul et",
+    "decline": "Reddet",
+    "days": "gün",
+    "notFound": "Davet bulunamadı"
+  },
   "tpl": {
     "read": "Okuma",
     "sport": "Spor",

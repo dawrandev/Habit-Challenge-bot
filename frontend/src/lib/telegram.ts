@@ -2,7 +2,10 @@
 
 type TgWebApp = {
   initData: string
-  initDataUnsafe?: { user?: { id?: number; language_code?: string } }
+  initDataUnsafe?: {
+    user?: { id?: number; language_code?: string }
+    start_param?: string
+  }
   ready: () => void
   expand: () => void
   colorScheme?: string
@@ -28,4 +31,12 @@ export function getInitData(): string | null {
 
 export function getTelegramLang(): string | undefined {
   return tg()?.initDataUnsafe?.user?.language_code
+}
+
+/** Deep-link start param (masalan "battle_abc123") — taklif uchun */
+export function getStartParam(): string | null {
+  const p = tg()?.initDataUnsafe?.start_param
+  if (p) return p
+  const url = new URLSearchParams(window.location.search)
+  return url.get('tgWebAppStartParam') || url.get('startapp') || null
 }

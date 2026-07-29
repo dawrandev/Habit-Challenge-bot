@@ -35,6 +35,11 @@ class BattleController extends Controller
         return ['battle' => $battle, 'invite_token' => $battle->invite_token];
     }
 
+    public function invite(Request $request, string $token)
+    {
+        return $this->battles->invitePreview($request->user(), $token);
+    }
+
     public function accept(Request $request, string $token)
     {
         $battle = $this->battles->acceptByToken($request->user(), $token);

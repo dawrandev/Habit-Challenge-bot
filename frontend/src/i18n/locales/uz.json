@@ -87,6 +87,14 @@
     "copied": "Nusxalandi!"
   },
   "chat2": { "send": "Yuborish", "placeholder": "Xabar…" },
+  "invite": {
+    "title": "Duel taklifi",
+    "by": "seni chaqiryapti",
+    "accept": "Qabul qilish",
+    "decline": "Rad etish",
+    "days": "kun",
+    "notFound": "Taklif topilmadi"
+  },
   "tpl": {
     "read": "O'qish",
     "sport": "Sport",

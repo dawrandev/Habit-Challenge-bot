@@ -214,6 +214,31 @@ export function useCreateBattle() {
   })
 }
 
+export type InvitePreview = {
+  battle: Battle
+  challenges: Challenge[]
+  creator: User | null
+  already_participant: boolean
+}
+
+export const useInvite = (token: string) =>
+  useQuery({
+    queryKey: ['invite', token],
+    queryFn: () => apiFetch<InvitePreview>(`/battles/invite/${token}`),
+    retry: false,
+  })
+
+export function useAcceptInvite() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (token: string) =>
+      apiFetch<{ ok: boolean; battle_id: number }>(`/battles/${token}/accept`, {
+        method: 'POST',
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['battles'] }),
+  })
+}
+
 export function useAddChallenge(battleId: number | string) {
   const qc = useQueryClient()
   return useMutation({

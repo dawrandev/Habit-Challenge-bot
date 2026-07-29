@@ -85,6 +85,25 @@ class BattleService
         return $challenge;
     }
 
+    /**
+     * Taklif ko'rinishi (qabul qilishdan oldin) — token bo'yicha.
+     *
+     * @return array<string, mixed>
+     */
+    public function invitePreview(User $user, string $token): array
+    {
+        $battle = Battle::with(['challenges', 'participants.user'])
+            ->where('invite_token', $token)
+            ->firstOrFail();
+
+        return [
+            'battle' => $battle,
+            'challenges' => $battle->challenges,
+            'creator' => User::find($battle->created_by),
+            'already_participant' => $battle->participants->contains('user_id', $user->id),
+        ];
+    }
+
     public function acceptByToken(User $user, string $token): Battle
     {
         $battle = Battle::where('invite_token', $token)->firstOrFail();

@@ -21,6 +21,7 @@ Route::middleware('tg.auth')->group(function () {
 
     Route::get('/battles', [BattleController::class, 'index']);
     Route::post('/battles', [BattleController::class, 'store']);
+    Route::get('/battles/invite/{token}', [BattleController::class, 'invite']);
     Route::post('/battles/{token}/accept', [BattleController::class, 'accept']);
     Route::get('/battles/{battle}', [BattleController::class, 'show']);
     Route::get('/battles/{battle}/today', [BattleController::class, 'today']);

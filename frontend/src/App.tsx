@@ -1,9 +1,11 @@
+import { useEffect } from 'react'
 import {
   BrowserRouter,
   Routes,
   Route,
   Navigate,
   useLocation,
+  useNavigate,
 } from 'react-router-dom'
 import { AnimatePresence } from 'motion/react'
 import BottomNav from './components/BottomNav'
@@ -15,6 +17,22 @@ import ProfilePage from './pages/ProfilePage'
 import ProofCapturePage from './pages/ProofCapturePage'
 import NewBattlePage from './pages/NewBattlePage'
 import ChatDetailPage from './pages/ChatDetailPage'
+import AcceptInvitePage from './pages/AcceptInvitePage'
+import { getStartParam } from './lib/telegram'
+
+/** Deep-link taklif: start_param "battle_<token>" bo'lsa → /invite/<token> */
+function StartParamHandler() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    const p = getStartParam()
+    if (p && p.startsWith('battle_')) {
+      const token = p.slice('battle_'.length)
+      if (token) navigate(`/invite/${token}`, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return null
+}
 
 function TabbedApp() {
   const location = useLocation()
@@ -41,8 +59,10 @@ function TabbedApp() {
 export default function App() {
   return (
     <BrowserRouter>
+      <StartParamHandler />
       <Routes>
         {/* To'liq ekran (navigatsiyasiz) */}
+        <Route path="/invite/:token" element={<AcceptInvitePage />} />
         <Route
           path="/battle/:id/proof/:challengeId"
           element={<ProofCapturePage />}

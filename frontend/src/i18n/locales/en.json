@@ -87,6 +87,14 @@
     "copied": "Copied!"
   },
   "chat2": { "send": "Send", "placeholder": "Message…" },
+  "invite": {
+    "title": "Duel invite",
+    "by": "challenges you",
+    "accept": "Accept",
+    "decline": "Decline",
+    "days": "days",
+    "notFound": "Invite not found"
+  },
   "tpl": {
     "read": "Reading",
     "sport": "Sport",
