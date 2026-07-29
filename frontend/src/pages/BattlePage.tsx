@@ -4,7 +4,14 @@ import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
 import AddChallengeModal from '../components/AddChallengeModal'
 import BattleSettingsModal from '../components/BattleSettingsModal'
-import { useBattle, useToday, type Challenge, type PlayerScore } from '../lib/api'
+import {
+  useBattle,
+  useDeleteChallenge,
+  useRespondChallenge,
+  useToday,
+  type Challenge,
+  type PlayerScore,
+} from '../lib/api'
 
 /* Ball 0 dan nishonga sanalib chiqadi */
 function useCountUp(target: number, duration = 1000) {
@@ -127,6 +134,8 @@ export default function BattlePage() {
   const [chOpen, setChOpen] = useState(false)
   const [editCh, setEditCh] = useState<Challenge | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const respond = useRespondChallenge(id!)
+  const removeCh = useDeleteChallenge(id!)
 
   if (isLoading || !data) {
     return (
@@ -220,6 +229,61 @@ export default function BattlePage() {
         </div>
       </section>
 
+      {/* Takliflar (pending challenge'lar) */}
+      {data.challenges.some((c) => c.pending) && (
+        <section className="rise-in px-5 pt-6" style={{ animationDelay: '0.08s' }}>
+          <h2 className="mb-2 text-xs tracking-[0.18em] text-muted uppercase">
+            🆕 {t('crud.proposals')}
+          </h2>
+          <div className="space-y-2">
+            {data.challenges
+              .filter((c) => c.pending)
+              .map((ch) => {
+                const mine = ch.proposed_by === me?.user.id
+                const label = ch.template_key ? t(`tpl.${ch.template_key}`) : ch.name
+                return (
+                  <div
+                    key={ch.id}
+                    className="flex items-center gap-3 rounded-2xl border border-you/30 bg-you/5 px-4 py-3"
+                  >
+                    <span className="text-lg">{ch.icon}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm">{label}</span>
+                    {mine ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted">⏳ {t('crud.waiting')}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeCh.mutate(ch.id)}
+                          className="grid h-8 w-8 place-items-center rounded-full bg-reject/15 text-reject"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => respond.mutate({ id: ch.id, accept: false })}
+                          className="grid h-9 w-9 place-items-center rounded-full bg-reject/15 text-reject transition active:scale-90"
+                        >
+                          ✕
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => respond.mutate({ id: ch.id, accept: true })}
+                          className="grid h-9 w-9 place-items-center rounded-full bg-approve/15 text-approve transition active:scale-90"
+                        >
+                          ✓
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+          </div>
+        </section>
+      )}
+
       {/* Batafsil */}
       <section className="rise-in px-5 pt-6" style={{ animationDelay: '0.12s' }}>
         <div className="mb-1 flex items-center justify-between">
@@ -238,7 +302,7 @@ export default function BattlePage() {
           </button>
         </div>
         <div className="divide-y divide-line rounded-2xl border border-line bg-surface px-4">
-          {data.challenges.map((ch) => {
+          {data.challenges.filter((c) => !c.pending).map((ch) => {
             const y = me?.breakdown?.[ch.id] ?? 0
             const r = rival?.breakdown?.[ch.id] ?? 0
             const total = Math.max(y + r, 1)
@@ -297,7 +361,9 @@ export default function BattlePage() {
                 type="button"
                 disabled={done}
                 onClick={() =>
-                  navigate(`/battle/${data.battle.id}/proof/${task.challenge.id}`)
+                  navigate(
+                    `/battle/${data.battle.id}/proof/${task.challenge.id}?type=${task.challenge.proof_type ?? 'camera'}`,
+                  )
                 }
                 className="flex w-full items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-left transition active:scale-[0.98] disabled:opacity-60"
               >

@@ -96,4 +96,16 @@ class BattleController extends Controller
 
         return ['ok' => true];
     }
+
+    public function acceptChallenge(Request $request, Battle $battle, string $challenge)
+    {
+        return $this->battles->acceptChallenge($request->user(), $battle, (int) $challenge);
+    }
+
+    public function rejectChallenge(Request $request, Battle $battle, string $challenge)
+    {
+        $this->battles->rejectChallenge($request->user(), $battle, (int) $challenge);
+
+        return ['ok' => true];
+    }
 }

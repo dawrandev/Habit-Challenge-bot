@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\Cadence;
+use App\Enums\ProofType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -26,6 +27,7 @@ class Challenge extends Model
     protected $fillable = [
         'battle_id', 'template_key', 'name', 'icon',
         'cadence', 'weekdays', 'start_date', 'active',
+        'pending', 'proposed_by', 'proof_type',
     ];
 
     protected function casts(): array
@@ -35,6 +37,8 @@ class Challenge extends Model
             'weekdays' => 'array',
             'start_date' => 'date:Y-m-d',
             'active' => 'boolean',
+            'pending' => 'boolean',
+            'proof_type' => ProofType::class,
         ];
     }
 

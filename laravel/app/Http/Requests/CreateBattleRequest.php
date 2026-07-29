@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Enums\Cadence;
+use App\Enums\ProofType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -29,6 +30,7 @@ class CreateBattleRequest extends FormRequest
             'challenges.*.name' => ['nullable', 'string', 'max:120'],
             'challenges.*.icon' => ['nullable', 'string', 'max:16'],
             'challenges.*.cadence' => ['required', Rule::enum(Cadence::class)],
+            'challenges.*.proof_type' => ['nullable', Rule::enum(ProofType::class)],
             'challenges.*.weekdays' => ['array'],
             'challenges.*.weekdays.*' => ['integer', 'between:0,6'],
         ];

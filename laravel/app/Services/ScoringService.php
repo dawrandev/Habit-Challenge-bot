@@ -33,7 +33,8 @@ class ScoringService
         $challengeScores = [];
         $breakdown = [];
 
-        foreach ($battle->challenges as $challenge) {
+        // Pending (hali qabul qilinmagan taklif) challenge'lar hisobga kirmaydi
+        foreach ($battle->challenges->where('pending', false) as $challenge) {
             $approvedDays = Completion::query()
                 ->where('challenge_id', $challenge->id)
                 ->where('user_id', $userId)

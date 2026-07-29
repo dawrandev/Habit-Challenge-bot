@@ -30,6 +30,8 @@ Route::middleware('tg.auth')->group(function () {
     Route::post('/battles/{battle}/challenges', [BattleController::class, 'addChallenge']);
     Route::patch('/battles/{battle}/challenges/{challenge}', [BattleController::class, 'updateChallenge']);
     Route::delete('/battles/{battle}/challenges/{challenge}', [BattleController::class, 'destroyChallenge']);
+    Route::post('/battles/{battle}/challenges/{challenge}/accept', [BattleController::class, 'acceptChallenge']);
+    Route::post('/battles/{battle}/challenges/{challenge}/reject', [BattleController::class, 'rejectChallenge']);
     Route::get('/battles/{battle}/messages', [ChatController::class, 'index']);
     Route::post('/battles/{battle}/messages', [ChatController::class, 'store']);
 

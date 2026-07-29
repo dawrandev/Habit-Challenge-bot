@@ -51,6 +51,8 @@ export type Battle = {
   invite_token: string
 }
 
+export type ProofType = 'camera' | 'screenshot'
+
 export type Challenge = {
   id: number
   battle_id: number
@@ -60,6 +62,9 @@ export type Challenge = {
   cadence: string
   weekdays: number[]
   start_date: string
+  pending?: boolean
+  proposed_by?: number | null
+  proof_type?: ProofType
 }
 
 export type PlayerScore = {
@@ -196,6 +201,7 @@ export type ChallengeInput = {
   icon: string
   cadence: 'daily' | 'weekly_days'
   weekdays: number[]
+  proof_type?: ProofType
 }
 
 export function useCreateBattle() {
@@ -275,6 +281,18 @@ export function useDeleteChallenge(battleId: number | string) {
   return useMutation({
     mutationFn: (id: number) =>
       apiFetch(`/battles/${battleId}/challenges/${id}`, { method: 'DELETE' }),
+    onSuccess: () => invalidateBattle(qc, battleId),
+  })
+}
+
+export function useRespondChallenge(battleId: number | string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (vars: { id: number; accept: boolean }) =>
+      apiFetch(
+        `/battles/${battleId}/challenges/${vars.id}/${vars.accept ? 'accept' : 'reject'}`,
+        { method: 'POST' },
+      ),
     onSuccess: () => invalidateBattle(qc, battleId),
   })
 }

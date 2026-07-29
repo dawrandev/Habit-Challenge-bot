@@ -1,19 +1,33 @@
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { useSubmitProof } from '../lib/api'
 
-type Phase = 'loading' | 'denied' | 'nocamera' | 'ready' | 'captured' | 'sending' | 'sent'
+type Phase =
+  | 'loading'
+  | 'pick' // skrinshot: fayl tanlash
+  | 'denied'
+  | 'nocamera'
+  | 'ready'
+  | 'captured'
+  | 'sending'
+  | 'sent'
 
 export default function ProofCapturePage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { id, challengeId } = useParams()
+  const [params] = useSearchParams()
+  const isScreenshot = params.get('type') === 'screenshot'
   const submitMut = useSubmitProof(id!)
+
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const blobRef = useRef<Blob | null>(null)
+
   const [phase, setPhase] = useState<Phase>('loading')
   const [shot, setShot] = useState<string | null>(null)
 
@@ -42,48 +56,72 @@ export default function ProofCapturePage() {
   }
 
   useEffect(() => {
-    startCamera()
+    if (isScreenshot) {
+      setPhase('pick')
+    } else {
+      startCamera()
+    }
     return stopCamera
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // --- Kamera ---
   function capture() {
     const video = videoRef.current
     const canvas = canvasRef.current
     if (!video || !canvas) return
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+    canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height)
+    canvas.toBlob(
+      (b) => {
+        blobRef.current = b
+      },
+      'image/jpeg',
+      0.9,
+    )
     setShot(canvas.toDataURL('image/jpeg', 0.9))
+    setPhase('captured')
+  }
+
+  // --- Skrinshot (galereya) ---
+  function onFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    blobRef.current = file
+    setShot(URL.createObjectURL(file))
     setPhase('captured')
   }
 
   function retake() {
     setShot(null)
-    setPhase('ready')
+    blobRef.current = null
+    setPhase(isScreenshot ? 'pick' : 'ready')
   }
 
   async function submit() {
-    const canvas = canvasRef.current
-    if (!canvas || !challengeId) return
+    if (!blobRef.current || !challengeId) return
     setPhase('sending')
-    const blob: Blob = await new Promise((res) =>
-      canvas.toBlob((b) => res(b!), 'image/jpeg', 0.9),
-    )
     try {
-      await submitMut.mutateAsync({ challengeId: Number(challengeId), blob })
+      await submitMut.mutateAsync({ challengeId: Number(challengeId), blob: blobRef.current })
       stopCamera()
       setPhase('sent')
       setTimeout(() => navigate(-1), 900)
     } catch {
-      setPhase('captured') // xatolik — qayta urinish mumkin
+      setPhase('captured')
     }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={onFile}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
         <button
@@ -98,20 +136,22 @@ export default function ProofCapturePage() {
         <span className="w-9" />
       </div>
 
-      {/* Kamera / preview maydoni */}
+      {/* Kamera / skrinshot / preview */}
       <div className="relative flex-1 overflow-hidden">
-        <video
-          ref={videoRef}
-          playsInline
-          muted
-          className={`h-full w-full object-cover ${phase === 'captured' || phase === 'sending' || phase === 'sent' ? 'hidden' : ''}`}
-        />
-        {shot && phase !== 'ready' && (
-          <img src={shot} alt="" className="h-full w-full object-cover" />
+        {!isScreenshot && (
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            className={`h-full w-full object-cover ${phase === 'captured' || phase === 'sending' || phase === 'sent' ? 'hidden' : ''}`}
+          />
+        )}
+        {shot && (phase === 'captured' || phase === 'sending' || phase === 'sent') && (
+          <img src={shot} alt="" className="h-full w-full object-contain" />
         )}
         <canvas ref={canvasRef} className="hidden" />
 
-        {/* Yo'riqnoma */}
+        {/* Kamera yo'riqnomasi */}
         {phase === 'ready' && (
           <div className="pointer-events-none absolute inset-x-0 bottom-4 text-center">
             <span className="rounded-full bg-black/50 px-3 py-1.5 text-sm text-white/90 backdrop-blur">
@@ -120,14 +160,29 @@ export default function ProofCapturePage() {
           </div>
         )}
 
-        {/* Yuklanmoqda */}
+        {/* Skrinshot tanlash ekrani */}
+        {phase === 'pick' && (
+          <div className="absolute inset-0 grid place-items-center px-8 text-center">
+            <div>
+              <p className="mb-3 text-5xl">🖼</p>
+              <p className="mb-5 text-sm text-muted">{t('crud.proofScreenshot')}</p>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-2xl bg-you px-6 py-3 font-semibold text-bg transition active:scale-95"
+              >
+                🖼 {t('crud.proofScreenshot')}
+              </button>
+            </div>
+          </div>
+        )}
+
         {phase === 'loading' && (
           <div className="absolute inset-0 grid place-items-center text-muted">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-you" />
           </div>
         )}
 
-        {/* Ruxsat yo'q / kamera yo'q */}
         {(phase === 'denied' || phase === 'nocamera') && (
           <div className="absolute inset-0 grid place-items-center px-8 text-center">
             <div>
@@ -149,7 +204,6 @@ export default function ProofCapturePage() {
           </div>
         )}
 
-        {/* Yuborildi overlay */}
         <AnimatePresence>
           {phase === 'sent' && (
             <motion.div
@@ -170,7 +224,7 @@ export default function ProofCapturePage() {
         </AnimatePresence>
       </div>
 
-      {/* Boshqaruv paneli */}
+      {/* Boshqaruv */}
       <div className="px-8 pt-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         {phase === 'ready' && (
           <div className="flex justify-center">
@@ -178,7 +232,7 @@ export default function ProofCapturePage() {
               type="button"
               onClick={capture}
               aria-label={t('proof.capture')}
-              className="grid h-18 w-18 place-items-center rounded-full ring-4 ring-white/80 transition active:scale-90"
+              className="grid place-items-center rounded-full ring-4 ring-white/80 transition active:scale-90"
               style={{ width: 72, height: 72 }}
             >
               <span className="h-14 w-14 rounded-full bg-white" />

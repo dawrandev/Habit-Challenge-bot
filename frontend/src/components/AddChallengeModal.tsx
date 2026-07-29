@@ -31,6 +31,7 @@ export default function AddChallengeModal({
   const [icon, setIcon] = useState<string>('📖')
   const [cadence, setCadence] = useState<'daily' | 'weekly_days'>('daily')
   const [days, setDays] = useState<number[]>([])
+  const [proof, setProof] = useState<'camera' | 'screenshot'>('camera')
 
   // edit ochilganda mavjud qiymatlar bilan to'ldirish
   useEffect(() => {
@@ -39,11 +40,13 @@ export default function AddChallengeModal({
       setIcon(edit.icon)
       setCadence(edit.cadence === 'weekly_days' ? 'weekly_days' : 'daily')
       setDays(edit.weekdays ?? [])
+      setProof(edit.proof_type === 'screenshot' ? 'screenshot' : 'camera')
     } else if (open && !edit) {
       setName('')
       setIcon('📖')
       setCadence('daily')
       setDays([])
+      setProof('camera')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, edit?.id])
@@ -62,6 +65,7 @@ export default function AddChallengeModal({
       icon,
       cadence,
       weekdays: cadence === 'weekly_days' ? days : [],
+      proof_type: proof,
     }
     if (edit) {
       update.mutate({ id: edit.id, data: payload }, { onSuccess: onClose })
@@ -165,11 +169,32 @@ export default function AddChallengeModal({
               </div>
             )}
 
+            {/* Isbot turi — kamera yoki skrinshot (SPEC §9) */}
+            <p className="mt-4 mb-2 text-xs tracking-[0.18em] text-muted uppercase">
+              {t('crud.proofType')}
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setProof('camera')}
+                className={`flex-1 rounded-xl border py-2.5 text-sm transition ${proof === 'camera' ? 'border-you bg-you/10 text-you' : 'border-line text-muted'}`}
+              >
+                📸 {t('crud.proofCamera')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setProof('screenshot')}
+                className={`flex-1 rounded-xl border py-2.5 text-sm transition ${proof === 'screenshot' ? 'border-you bg-you/10 text-you' : 'border-line text-muted'}`}
+              >
+                🖼 {t('crud.proofScreenshot')}
+              </button>
+            </div>
+
             <button
               type="button"
               onClick={submit}
               disabled={!name.trim() || busy}
-              className="mt-3 w-full rounded-2xl bg-you py-3.5 font-display text-lg text-bg transition active:scale-[0.98] disabled:opacity-50"
+              className="mt-4 w-full rounded-2xl bg-you py-3.5 font-display text-lg text-bg transition active:scale-[0.98] disabled:opacity-50"
             >
               {busy ? '…' : edit ? t('crud.save') : `＋ ${t('create.create')}`}
             </button>

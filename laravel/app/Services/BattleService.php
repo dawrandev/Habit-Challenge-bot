@@ -51,7 +51,9 @@ class BattleService
                 'icon' => $data['icon'] ?? '🎯',
                 'cadence' => $data['cadence'] ?? Cadence::Daily->value,
                 'weekdays' => $data['weekdays'] ?? [],
+                'proof_type' => $data['proof_type'] ?? 'camera',
                 'start_date' => $start->toDateString(),
+                // battle boshidagilar — ikkalasi qabul qilgan (pending emas)
             ]);
         }
 
@@ -73,16 +75,84 @@ class BattleService
             'icon' => $data['icon'] ?? '🎯',
             'cadence' => $data['cadence'] ?? Cadence::Daily->value,
             'weekdays' => $data['weekdays'] ?? [],
+            'proof_type' => $data['proof_type'] ?? 'camera',
             'start_date' => $start->toDateString(),
+            'pending' => true,             // taklif — do'st qabul qilmaguncha
+            'proposed_by' => $user->id,
         ]);
 
-        $label = $challenge->name !== '' ? $challenge->name : ($data['template_key'] ?? 'challenge');
+        $label = $this->challengeLabel($challenge, $data['template_key'] ?? null);
         $this->notifications->notify(
             $this->access->otherTelegramIds($battle->id, $user->id),
-            "➕ {$user->first_name} yangi challenge qo'shdi: {$challenge->icon} {$label}",
+            "🆕 <b>{$user->first_name}</b> yangi challenge taklif qildi:\n"
+                ."{$challenge->icon} <b>{$label}</b>\n\nQabul qilasanmi? Ilovada ko'r 👇",
         );
 
         return $challenge;
+    }
+
+    /**
+     * Taklif qilingan challenge'ni qabul qiladi (do'st) — o'sha kundan boshlanadi.
+     */
+    public function acceptChallenge(User $user, Battle $battle, int $challengeId): Challenge
+    {
+        if (! $this->access->isParticipant($battle->id, $user->id)) {
+            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException("Ruxsat yo'q");
+        }
+
+        $challenge = $battle->challenges()->where('pending', true)->findOrFail($challengeId);
+        if ($challenge->proposed_by === $user->id) {
+            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException(
+                "O'z taklifingni qabul qila olmaysan",
+            );
+        }
+
+        $challenge->update([
+            'pending' => false,
+            'start_date' => Clock::todayLocal()->toDateString(),
+        ]);
+
+        $proposer = User::find($challenge->proposed_by);
+        if ($proposer) {
+            $this->notifications->notify(
+                [$proposer->telegram_id],
+                "✅ <b>{$user->first_name}</b> challenge'ni qabul qildi: {$challenge->icon} "
+                    .$this->challengeLabel($challenge, $challenge->template_key)."\nBoshlandi! 🔥",
+            );
+        }
+
+        return $challenge;
+    }
+
+    /**
+     * Taklifni rad etadi (challenge o'chiriladi).
+     */
+    public function rejectChallenge(User $user, Battle $battle, int $challengeId): void
+    {
+        if (! $this->access->isParticipant($battle->id, $user->id)) {
+            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException("Ruxsat yo'q");
+        }
+
+        $challenge = $battle->challenges()->where('pending', true)->findOrFail($challengeId);
+        if ($challenge->proposed_by === $user->id) {
+            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException("Ruxsat yo'q");
+        }
+
+        $proposer = User::find($challenge->proposed_by);
+        $label = $this->challengeLabel($challenge, $challenge->template_key);
+        $challenge->delete();
+
+        if ($proposer) {
+            $this->notifications->notify(
+                [$proposer->telegram_id],
+                "❌ <b>{$user->first_name}</b> challenge taklifini rad etdi: {$label}",
+            );
+        }
+    }
+
+    private function challengeLabel(Challenge $challenge, ?string $templateKey): string
+    {
+        return $challenge->name !== '' ? $challenge->name : ($templateKey ?? 'challenge');
     }
 
     /**
@@ -225,7 +295,7 @@ class BattleService
         $today = Clock::todayLocal();
         $out = [];
 
-        foreach ($battle->challenges()->where('active', true)->get() as $challenge) {
+        foreach ($battle->challenges()->where('active', true)->where('pending', false)->get() as $challenge) {
             // Sana bo'yicha taqqoslash (timezone-instant emas)
             $startsAfterToday = $challenge->start_date->toDateString() > $today->toDateString();
             if ($startsAfterToday || ! $challenge->cadence->isDue($today, $challenge->weekdaysList())) {
