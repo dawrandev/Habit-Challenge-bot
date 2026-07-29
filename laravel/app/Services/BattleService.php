@@ -104,6 +104,70 @@ class BattleService
         ];
     }
 
+    /**
+     * Battle sarlavhasini tahrirlaydi (faqat yaratuvchi).
+     */
+    public function updateBattle(User $user, Battle $battle, string $title): Battle
+    {
+        if ($battle->created_by !== $user->id) {
+            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException(
+                "Faqat yaratuvchi tahrirlay oladi",
+            );
+        }
+
+        $battle->update(['title' => $title]);
+
+        return $battle;
+    }
+
+    /**
+     * Challenge'ni tahrirlaydi (ishtirokchi).
+     *
+     * @param  array{name?: string, icon?: string, cadence?: string, weekdays?: array<int>}  $data
+     */
+    public function updateChallenge(User $user, Battle $battle, int $challengeId, array $data): Challenge
+    {
+        if (! $this->access->isParticipant($battle->id, $user->id)) {
+            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException("Ruxsat yo'q");
+        }
+
+        $challenge = $battle->challenges()->findOrFail($challengeId);
+        $challenge->update([
+            'name' => $data['name'] ?? $challenge->name,
+            'icon' => $data['icon'] ?? $challenge->icon,
+            'cadence' => $data['cadence'] ?? $challenge->cadence->value,
+            'weekdays' => $data['weekdays'] ?? $challenge->weekdays,
+        ]);
+
+        return $challenge;
+    }
+
+    /**
+     * Battle'ni o'chiradi (faqat yaratuvchi) — bog'liq hammasi cascade bilan.
+     */
+    public function deleteBattle(User $user, Battle $battle): void
+    {
+        if ($battle->created_by !== $user->id) {
+            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException(
+                "Faqat yaratuvchi o'chira oladi",
+            );
+        }
+
+        $battle->delete();
+    }
+
+    /**
+     * Battle'dan bitta challenge'ni o'chiradi (ishtirokchi).
+     */
+    public function deleteChallenge(User $user, Battle $battle, int $challengeId): void
+    {
+        if (! $this->access->isParticipant($battle->id, $user->id)) {
+            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException("Ruxsat yo'q");
+        }
+
+        $battle->challenges()->findOrFail($challengeId)->delete();
+    }
+
     public function acceptByToken(User $user, string $token): Battle
     {
         $battle = Battle::where('invite_token', $token)->firstOrFail();

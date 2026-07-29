@@ -95,6 +95,26 @@
     "days": "days",
     "notFound": "Invite not found"
   },
+  "about": {
+    "title": "How it works",
+    "intro": "Battle turns habits into a duel with friends. Whoever stays more consistent wins!",
+    "s1": "Create a battle with a friend — add several challenges (reading, sport...)",
+    "s2": "Send the invite link to your friend and let them accept",
+    "s3": "Do the challenge daily and send proof with the live camera",
+    "s4": "Verify each other's proof (✓ approve / ✕ reject)",
+    "s5": "At the end, whoever has more points is the WINNER!",
+    "outro": "Points: done +1, missed −0.5. Stay consistent! 🔥"
+  },
+  "crud": {
+    "editChallenge": "Edit challenge",
+    "save": "Save",
+    "confirmDeleteChallenge": "Delete this challenge?",
+    "settings": "Settings",
+    "editTitle": "Edit name",
+    "shareInvite": "Invite link",
+    "deleteBattle": "Delete battle",
+    "confirmDeleteBattle": "Delete the whole battle? This can't be undone."
+  },
   "tpl": {
     "read": "Reading",
     "sport": "Sport",

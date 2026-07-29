@@ -1,20 +1,30 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { ICON_SET } from '../lib/challenges'
-import { useAddChallenge, type ChallengeInput } from '../lib/api'
+import {
+  useAddChallenge,
+  useDeleteChallenge,
+  useUpdateChallenge,
+  type Challenge,
+  type ChallengeInput,
+} from '../lib/api'
 
 export default function AddChallengeModal({
   battleId,
   open,
   onClose,
+  edit = null,
 }: {
   battleId: number | string
   open: boolean
   onClose: () => void
+  edit?: Challenge | null
 }) {
   const { t } = useTranslation()
   const add = useAddChallenge(battleId)
+  const update = useUpdateChallenge(battleId)
+  const remove = useDeleteChallenge(battleId)
   const weekdays = t('weekdays', { returnObjects: true }) as string[]
 
   const [name, setName] = useState('')
@@ -22,28 +32,48 @@ export default function AddChallengeModal({
   const [cadence, setCadence] = useState<'daily' | 'weekly_days'>('daily')
   const [days, setDays] = useState<number[]>([])
 
+  // edit ochilganda mavjud qiymatlar bilan to'ldirish
+  useEffect(() => {
+    if (open && edit) {
+      setName(edit.template_key ? t(`tpl.${edit.template_key}`) : edit.name)
+      setIcon(edit.icon)
+      setCadence(edit.cadence === 'weekly_days' ? 'weekly_days' : 'daily')
+      setDays(edit.weekdays ?? [])
+    } else if (open && !edit) {
+      setName('')
+      setIcon('📖')
+      setCadence('daily')
+      setDays([])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, edit?.id])
+
   function toggleDay(d: number) {
     setDays((cur) => (cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d].sort()))
   }
 
+  const busy = add.isPending || update.isPending || remove.isPending
+
   function submit() {
     if (!name.trim()) return
     const payload: ChallengeInput = {
-      template_key: null,
+      template_key: edit?.template_key ?? null,
       name: name.trim(),
       icon,
       cadence,
       weekdays: cadence === 'weekly_days' ? days : [],
     }
-    add.mutate(payload, {
-      onSuccess: () => {
-        setName('')
-        setIcon('📖')
-        setCadence('daily')
-        setDays([])
-        onClose()
-      },
-    })
+    if (edit) {
+      update.mutate({ id: edit.id, data: payload }, { onSuccess: onClose })
+    } else {
+      add.mutate(payload, { onSuccess: onClose })
+    }
+  }
+
+  function del() {
+    if (!edit) return
+    if (!window.confirm(t('crud.confirmDeleteChallenge'))) return
+    remove.mutate(edit.id, { onSuccess: onClose })
   }
 
   return (
@@ -65,19 +95,30 @@ export default function AddChallengeModal({
             className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[90vh] max-w-md overflow-y-auto rounded-t-3xl border border-line bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
           >
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-line" />
-            <h2 className="mb-4 font-display text-xl">
-              {icon} {t('create.chooseChallenges')}
-            </h2>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-display text-xl">
+                {icon} {edit ? t('crud.editChallenge') : t('create.chooseChallenges')}
+              </h2>
+              {edit && (
+                <button
+                  type="button"
+                  onClick={del}
+                  disabled={busy}
+                  className="rounded-full bg-reject/15 px-3 py-1 text-xs font-semibold text-reject transition active:scale-95"
+                >
+                  🗑
+                </button>
+              )}
+            </div>
 
-            {/* Nom */}
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('create.customPlaceholder')}
-              className="mb-3 w-full rounded-2xl border border-line bg-surface-2 px-4 py-3 text-text outline-none focus:border-you"
+              disabled={!!edit?.template_key}
+              className="mb-3 w-full rounded-2xl border border-line bg-surface-2 px-4 py-3 text-text outline-none focus:border-you disabled:opacity-60"
             />
 
-            {/* Icon tanlash */}
             <div className="mb-4 grid grid-cols-8 gap-1.5">
               {ICON_SET.map((em) => (
                 <button
@@ -93,7 +134,6 @@ export default function AddChallengeModal({
               ))}
             </div>
 
-            {/* Chastota */}
             <div className="mb-2 flex gap-2">
               <button
                 type="button"
@@ -128,10 +168,10 @@ export default function AddChallengeModal({
             <button
               type="button"
               onClick={submit}
-              disabled={!name.trim() || add.isPending}
+              disabled={!name.trim() || busy}
               className="mt-3 w-full rounded-2xl bg-you py-3.5 font-display text-lg text-bg transition active:scale-[0.98] disabled:opacity-50"
             >
-              {add.isPending ? '…' : `＋ ${t('create.create')}`}
+              {busy ? '…' : edit ? t('crud.save') : `＋ ${t('create.create')}`}
             </button>
           </motion.div>
         </>

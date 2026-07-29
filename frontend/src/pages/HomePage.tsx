@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
-import { useBattles, useSeed, type PlayerScore } from '../lib/api'
+import { useBattles, type PlayerScore } from '../lib/api'
 
 function fmt(n: number) {
   return Number.isInteger(n) ? String(n) : n.toFixed(1)
@@ -18,7 +18,6 @@ export default function HomePage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { data: battles, isLoading } = useBattles()
-  const seed = useSeed()
 
   return (
     <PageTransition>
@@ -42,14 +41,18 @@ export default function HomePage() {
       {!isLoading && battles && battles.length === 0 && (
         <div className="px-5 py-10 text-center">
           <p className="mb-4 text-sm text-muted">{t('home.empty')}</p>
-          <button
-            type="button"
-            onClick={() => seed.mutate()}
-            disabled={seed.isPending}
-            className="rounded-2xl border border-line bg-surface px-5 py-3 text-sm transition active:scale-95 disabled:opacity-50"
-          >
-            {seed.isPending ? '…' : '🎲 Demo battle yaratish'}
-          </button>
+          <div className="flex flex-col items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/new')}
+              className="rounded-2xl bg-you px-6 py-3 font-semibold text-bg transition active:scale-95"
+            >
+              ＋ {t('home.new')}
+            </button>
+            <Link to="/about" className="text-sm text-you underline">
+              ℹ️ {t('about.title')}
+            </Link>
+          </div>
         </div>
       )}
 

@@ -65,4 +65,35 @@ class BattleController extends Controller
 
         return $this->battles->addChallenge($request->user(), $battle, $request->validated());
     }
+
+    public function update(Request $request, Battle $battle)
+    {
+        $data = $request->validate(['title' => ['required', 'string', 'max:120']]);
+
+        return $this->battles->updateBattle($request->user(), $battle, $data['title']);
+    }
+
+    public function destroy(Request $request, Battle $battle)
+    {
+        $this->battles->deleteBattle($request->user(), $battle);
+
+        return ['ok' => true];
+    }
+
+    public function updateChallenge(AddChallengeRequest $request, Battle $battle, string $challenge)
+    {
+        return $this->battles->updateChallenge(
+            $request->user(),
+            $battle,
+            (int) $challenge,
+            $request->validated(),
+        );
+    }
+
+    public function destroyChallenge(Request $request, Battle $battle, string $challenge)
+    {
+        $this->battles->deleteChallenge($request->user(), $battle, (int) $challenge);
+
+        return ['ok' => true];
+    }
 }

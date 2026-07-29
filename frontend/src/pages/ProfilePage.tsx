@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
@@ -39,6 +40,18 @@ export default function ProfilePage() {
             )}
           </div>
         </motion.div>
+      </section>
+
+      {/* Qanday ishlaydi */}
+      <section className="px-5 pt-6">
+        <Link
+          to="/about"
+          className="flex items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3.5 transition active:scale-[0.98]"
+        >
+          <span className="text-lg">ℹ️</span>
+          <span className="flex-1 text-sm font-medium">{t('about.title')}</span>
+          <span className="text-muted">›</span>
+        </Link>
       </section>
 
       {/* Til almashtirgich */}

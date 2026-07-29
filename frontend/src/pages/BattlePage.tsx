@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
 import AddChallengeModal from '../components/AddChallengeModal'
-import { useBattle, useToday, type PlayerScore } from '../lib/api'
+import BattleSettingsModal from '../components/BattleSettingsModal'
+import { useBattle, useToday, type Challenge, type PlayerScore } from '../lib/api'
 
 /* Ball 0 dan nishonga sanalib chiqadi */
 function useCountUp(target: number, duration = 1000) {
@@ -123,7 +124,9 @@ export default function BattlePage() {
   const { t } = useTranslation()
   const { data, isLoading } = useBattle(id!)
   const { data: today } = useToday(id!)
-  const [addOpen, setAddOpen] = useState(false)
+  const [chOpen, setChOpen] = useState(false)
+  const [editCh, setEditCh] = useState<Challenge | null>(null)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   if (isLoading || !data) {
     return (
@@ -163,13 +166,23 @@ export default function BattlePage() {
           </p>
           <h1 className="font-display text-2xl">{data.battle.title}</h1>
         </div>
-        <div className="rounded-full border border-line bg-surface px-3 py-1.5 text-right">
-          <p className="text-[10px] tracking-wide text-muted uppercase">
-            {t('battle.endsIn')}
-          </p>
-          <p className="tabular font-mono text-sm text-you">
-            {t('battle.timeLeft', { d: tl.d, h: tl.h })}
-          </p>
+        <div className="flex items-center gap-2">
+          <div className="rounded-full border border-line bg-surface px-3 py-1.5 text-right">
+            <p className="text-[10px] tracking-wide text-muted uppercase">
+              {t('battle.endsIn')}
+            </p>
+            <p className="tabular font-mono text-sm text-you">
+              {t('battle.timeLeft', { d: tl.d, h: tl.h })}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="grid h-9 w-9 place-items-center rounded-full border border-line bg-surface text-muted transition active:scale-90"
+            aria-label={t('crud.settings')}
+          >
+            ⚙️
+          </button>
         </div>
       </header>
 
@@ -215,7 +228,10 @@ export default function BattlePage() {
           </h2>
           <button
             type="button"
-            onClick={() => setAddOpen(true)}
+            onClick={() => {
+              setEditCh(null)
+              setChOpen(true)
+            }}
             className="rounded-full bg-you/15 px-3 py-1 text-xs font-semibold text-you transition active:scale-95"
           >
             ＋ Challenge
@@ -228,7 +244,15 @@ export default function BattlePage() {
             const total = Math.max(y + r, 1)
             const youLead = y >= r
             return (
-              <div key={ch.id} className="flex items-center gap-3 py-2.5">
+              <button
+                key={ch.id}
+                type="button"
+                onClick={() => {
+                  setEditCh(ch)
+                  setChOpen(true)
+                }}
+                className="flex w-full items-center gap-3 py-2.5 text-left transition active:opacity-70"
+              >
                 <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-lg">
                   {ch.icon}
                 </div>
@@ -251,7 +275,7 @@ export default function BattlePage() {
                     <div className="h-full flex-1 bg-rival" />
                   </div>
                 </div>
-              </div>
+              </button>
             )
           })}
         </div>
@@ -301,8 +325,17 @@ export default function BattlePage() {
 
       <AddChallengeModal
         battleId={data.battle.id}
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
+        open={chOpen}
+        edit={editCh}
+        onClose={() => setChOpen(false)}
+      />
+
+      <BattleSettingsModal
+        battle={data.battle}
+        isCreator={me?.user.id === data.battle.created_by}
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onDeleted={() => navigate('/', { replace: true })}
       />
     </PageTransition>
   )

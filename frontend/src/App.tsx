@@ -18,6 +18,7 @@ import ProofCapturePage from './pages/ProofCapturePage'
 import NewBattlePage from './pages/NewBattlePage'
 import ChatDetailPage from './pages/ChatDetailPage'
 import AcceptInvitePage from './pages/AcceptInvitePage'
+import AboutPage from './pages/AboutPage'
 import { getStartParam } from './lib/telegram'
 
 /** Deep-link taklif: start_param "battle_<token>" bo'lsa → /invite/<token> */
@@ -43,6 +44,7 @@ function TabbedApp() {
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<HomePage />} />
             <Route path="/new" element={<NewBattlePage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/battle/:id" element={<BattlePage />} />
             <Route path="/activity" element={<ActivityPage />} />
             <Route path="/chat" element={<ChatPage />} />

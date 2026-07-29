@@ -95,6 +95,26 @@
     "days": "kun",
     "notFound": "Taklif topilmadi"
   },
+  "about": {
+    "title": "Qanday ishlaydi",
+    "intro": "Battle — do'stlar bilan odatni bellashuv tarzida shakllantirish. Kim izchilroq bo'lsa, o'sha yutadi!",
+    "s1": "Do'stingni tanlab battle yarat — ichida bir nechta challenge (o'qish, sport...)",
+    "s2": "Taklif havolasini do'stingga yubor, u qabul qilsin",
+    "s3": "Har kuni challenge'ni bajarib, jonli kamera bilan isbot yubor",
+    "s4": "Bir-biringning isbotini tekshir (✓ tasdiq / ✕ rad)",
+    "s5": "Davr oxirida ko'proq ball to'plagan — G'OLIB!",
+    "outro": "Ballar: bajarish +1, o'tkazib yuborish −0.5. Izchil bo'l! 🔥"
+  },
+  "crud": {
+    "editChallenge": "Challenge tahrirlash",
+    "save": "Saqlash",
+    "confirmDeleteChallenge": "Bu challenge o'chirilsinmi?",
+    "settings": "Sozlamalar",
+    "editTitle": "Nomni tahrirlash",
+    "shareInvite": "Taklif havolasi",
+    "deleteBattle": "Battle'ni o'chirish",
+    "confirmDeleteBattle": "Butun battle o'chirilsinmi? Qaytarib bo'lmaydi."
+  },
   "tpl": {
     "read": "O'qish",
     "sport": "Sport",

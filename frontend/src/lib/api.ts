@@ -46,6 +46,7 @@ export type Battle = {
   period_days: number
   start_date: string
   end_date: string
+  created_by: number
   winner_id: number | null
   invite_token: string
 }
@@ -239,6 +240,12 @@ export function useAcceptInvite() {
   })
 }
 
+function invalidateBattle(qc: ReturnType<typeof useQueryClient>, battleId: number | string) {
+  qc.invalidateQueries({ queryKey: ['battle', String(battleId)] })
+  qc.invalidateQueries({ queryKey: ['today', String(battleId)] })
+  qc.invalidateQueries({ queryKey: ['battles'] })
+}
+
 export function useAddChallenge(battleId: number | string) {
   const qc = useQueryClient()
   return useMutation({
@@ -247,10 +254,49 @@ export function useAddChallenge(battleId: number | string) {
         method: 'POST',
         body: JSON.stringify(c),
       }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['battle', String(battleId)] })
-      qc.invalidateQueries({ queryKey: ['today', String(battleId)] })
-    },
+    onSuccess: () => invalidateBattle(qc, battleId),
+  })
+}
+
+export function useUpdateChallenge(battleId: number | string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (vars: { id: number; data: ChallengeInput }) =>
+      apiFetch(`/battles/${battleId}/challenges/${vars.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(vars.data),
+      }),
+    onSuccess: () => invalidateBattle(qc, battleId),
+  })
+}
+
+export function useDeleteChallenge(battleId: number | string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) =>
+      apiFetch(`/battles/${battleId}/challenges/${id}`, { method: 'DELETE' }),
+    onSuccess: () => invalidateBattle(qc, battleId),
+  })
+}
+
+export function useUpdateBattle(battleId: number | string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (title: string) =>
+      apiFetch(`/battles/${battleId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ title }),
+      }),
+    onSuccess: () => invalidateBattle(qc, battleId),
+  })
+}
+
+export function useDeleteBattle() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (battleId: number | string) =>
+      apiFetch(`/battles/${battleId}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['battles'] }),
   })
 }
 

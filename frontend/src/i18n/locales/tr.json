@@ -95,6 +95,26 @@
     "days": "gün",
     "notFound": "Davet bulunamadı"
   },
+  "about": {
+    "title": "Nasıl çalışır",
+    "intro": "Battle, alışkanlıkları arkadaşlarla düelloya çevirir. Daha istikrarlı olan kazanır!",
+    "s1": "Bir arkadaşınla düello oluştur — birkaç meydan okuma ekle (okuma, spor...)",
+    "s2": "Davet bağlantısını arkadaşına gönder, kabul etsin",
+    "s3": "Her gün meydan okumayı yap ve canlı kamerayla kanıt gönder",
+    "s4": "Birbirinizin kanıtını doğrulayın (✓ onayla / ✕ reddet)",
+    "s5": "Sonunda daha çok puanı olan KAZANIR!",
+    "outro": "Puanlar: yapıldı +1, kaçırıldı −0.5. İstikrarlı ol! 🔥"
+  },
+  "crud": {
+    "editChallenge": "Meydan okumayı düzenle",
+    "save": "Kaydet",
+    "confirmDeleteChallenge": "Bu meydan okuma silinsin mi?",
+    "settings": "Ayarlar",
+    "editTitle": "Adı düzenle",
+    "shareInvite": "Davet bağlantısı",
+    "deleteBattle": "Düelloyu sil",
+    "confirmDeleteBattle": "Tüm düello silinsin mi? Geri alınamaz."
+  },
   "tpl": {
     "read": "Okuma",
     "sport": "Spor",
