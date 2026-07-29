@@ -6,7 +6,6 @@ namespace App\Services;
 
 use App\Models\ChatMessage;
 use App\Models\User;
-use App\Services\Telegram\NotificationService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -18,7 +17,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class ChatService
 {
     public function __construct(
-        private readonly NotificationService $notifications,
         private readonly BattleAccess $access,
     ) {}
 
@@ -47,10 +45,8 @@ class ChatService
             'text' => Str::limit($text, 2000, ''),
         ]);
 
-        $this->notifications->notify(
-            $this->access->otherTelegramIds($battleId, $user->id),
-            "💬 {$user->first_name}: ".Str::limit($text, 80),
-        );
+        // Chat faqat ilovada — har xabarda bot'ga spam yubormaymiz.
+        // Bot bildirishnomalari faqat muhim hodisalar uchun (taklif, tekshiruv).
 
         return $message;
     }

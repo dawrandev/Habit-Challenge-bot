@@ -19,4 +19,7 @@ php artisan view:cache
 echo "▸ Ruxsatlar..."
 chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
+echo "▸ Telegram menyu tugmasi..."
+php artisan battle:set-menu || true
+
 echo "✅ Deploy tayyor."

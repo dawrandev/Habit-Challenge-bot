@@ -109,4 +109,18 @@ class TelegramClient
     {
         return (array) Http::get($this->method('getMe'))->json();
     }
+
+    /**
+     * Doimiy menyu tugmasi (input yonida) — Mini App'ni ochadi.
+     */
+    public function setMenuButton(string $text, string $url): array
+    {
+        return (array) Http::asJson()->post($this->method('setChatMenuButton'), [
+            'menu_button' => [
+                'type' => 'web_app',
+                'text' => $text,
+                'web_app' => ['url' => $url],
+            ],
+        ])->json();
+    }
 }
