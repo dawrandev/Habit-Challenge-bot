@@ -1,10 +1,21 @@
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
+import { photoUrl } from '../lib/api'
 
 export type VerifyItem = {
   rivalName: string
   icon: string
   label: string
+  fileId?: string | null
+  submittedAt?: string | null
+}
+
+function formatTime(iso?: string | null): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
 export default function VerifyModal({
@@ -21,6 +32,15 @@ export default function VerifyModal({
   onReject: () => void
 }) {
   const { t } = useTranslation()
+  const [imgError, setImgError] = useState(false)
+
+  const src = photoUrl(item?.fileId)
+  const time = formatTime(item?.submittedAt)
+
+  // Yangi element ochilganda rasm xatosini tozalash
+  useEffect(() => {
+    setImgError(false)
+  }, [item?.fileId])
 
   return (
     <AnimatePresence>
@@ -49,12 +69,23 @@ export default function VerifyModal({
             </div>
 
             <div className="relative mb-2 aspect-square w-full overflow-hidden rounded-2xl bg-gradient-to-br from-surface-2 to-bg">
-              <div className="absolute inset-0 grid place-items-center text-6xl opacity-40">
-                {item.icon}
-              </div>
-              <div className="absolute bottom-2 left-2 rounded-full bg-black/50 px-2.5 py-1 text-xs text-white/80 backdrop-blur">
-                {t('verify.submittedAt')} · 22:14
-              </div>
+              {src && !imgError ? (
+                <img
+                  src={src}
+                  alt={item.label}
+                  onError={() => setImgError(true)}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 grid place-items-center text-6xl opacity-40">
+                  {item.icon}
+                </div>
+              )}
+              {time && (
+                <div className="absolute bottom-2 left-2 rounded-full bg-black/50 px-2.5 py-1 text-xs text-white/80 backdrop-blur">
+                  {t('verify.submittedAt')} · {time}
+                </div>
+              )}
             </div>
 
             <p className="mb-4 text-center text-sm text-muted">

@@ -82,6 +82,8 @@ export default function ActivityPage() {
                 rivalName: selected.rival.first_name,
                 icon: selected.challenge.icon,
                 label: labelOf(selected),
+                fileId: selected.completion.file_id,
+                submittedAt: selected.completion.created_at,
               }
             : null
         }

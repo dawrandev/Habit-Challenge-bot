@@ -13,6 +13,12 @@ function authHeaders(): Record<string, string> {
   return { 'X-Dev-Telegram-Id': String(DEV_TELEGRAM_ID) }
 }
 
+/** Isbot rasmi proxy (bot token oshkor bo'lmaydi). Dev placeholder'lar uchun null. */
+export function photoUrl(fileId?: string | null): string | null {
+  if (!fileId || fileId.startsWith('dev-')) return null
+  return `/api/photo/${encodeURIComponent(fileId)}`
+}
+
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const isForm = options.body instanceof FormData
   const res = await fetch(`/api${path}`, {
@@ -99,7 +105,13 @@ export type ChatMsg = {
 }
 
 export type QueueItem = {
-  completion: { id: number; day: string; status: string; file_id: string | null }
+  completion: {
+    id: number
+    day: string
+    status: string
+    file_id: string | null
+    created_at: string | null
+  }
   challenge: Challenge
   rival: User
 }
