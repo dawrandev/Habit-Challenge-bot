@@ -109,6 +109,7 @@
     "proofType": "Proof type",
     "proofCamera": "Live camera",
     "proofScreenshot": "Screenshot",
+    "descPlaceholder": "Note (e.g. no more than 1 hour of Instagram per day)",
     "proposals": "Proposals",
     "waiting": "Waiting for your friend",
     "editChallenge": "Edit challenge",

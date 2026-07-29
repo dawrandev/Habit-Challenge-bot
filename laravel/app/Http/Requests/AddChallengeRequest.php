@@ -24,6 +24,7 @@ class AddChallengeRequest extends FormRequest
         return [
             'template_key' => ['nullable', 'string', 'max:40'],
             'name' => ['nullable', 'string', 'max:120'],
+            'description' => ['nullable', 'string', 'max:200'],
             'icon' => ['nullable', 'string', 'max:16'],
             'cadence' => ['required', Rule::enum(Cadence::class)],
             'proof_type' => ['nullable', Rule::enum(ProofType::class)],

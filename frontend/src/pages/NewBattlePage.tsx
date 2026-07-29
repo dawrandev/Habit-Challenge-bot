@@ -53,6 +53,12 @@ export default function NewBattlePage() {
     )
   }
 
+  function setDescription(idx: number, description: string) {
+    setItems((cur) =>
+      cur.map((c, i) => (i === idx ? { ...c, description } : c)),
+    )
+  }
+
   function toggleDay(idx: number, day: number) {
     setItems((cur) =>
       cur.map((c, i) => {
@@ -273,6 +279,13 @@ export default function NewBattlePage() {
                 ✕
               </button>
             </div>
+            <input
+              value={c.description ?? ''}
+              onChange={(e) => setDescription(idx, e.target.value)}
+              placeholder={t('crud.descPlaceholder')}
+              maxLength={200}
+              className="mb-3 w-full rounded-xl border border-line bg-surface-2 px-3 py-2 text-xs outline-none focus:border-you"
+            />
             <div className="mb-2 flex gap-2">
               <button
                 type="button"

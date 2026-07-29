@@ -28,6 +28,7 @@ class CreateBattleRequest extends FormRequest
             'challenges' => ['required', 'array', 'min:1', 'max:8'],
             'challenges.*.template_key' => ['nullable', 'string', 'max:40'],
             'challenges.*.name' => ['nullable', 'string', 'max:120'],
+            'challenges.*.description' => ['nullable', 'string', 'max:200'],
             'challenges.*.icon' => ['nullable', 'string', 'max:16'],
             'challenges.*.cadence' => ['required', Rule::enum(Cadence::class)],
             'challenges.*.proof_type' => ['nullable', Rule::enum(ProofType::class)],

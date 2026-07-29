@@ -247,7 +247,12 @@ export default function BattlePage() {
                     className="flex items-center gap-3 rounded-2xl border border-you/30 bg-you/5 px-4 py-3"
                   >
                     <span className="text-lg">{ch.icon}</span>
-                    <span className="min-w-0 flex-1 truncate text-sm">{label}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm">{label}</p>
+                      {ch.description && (
+                        <p className="truncate text-xs text-muted">{ch.description}</p>
+                      )}
+                    </div>
                     {mine ? (
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted">⏳ {t('crud.waiting')}</span>
@@ -331,6 +336,9 @@ export default function BattlePage() {
                       <span className={!youLead ? 'text-rival' : 'text-muted'}>{r}</span>
                     </span>
                   </div>
+                  {ch.description && (
+                    <p className="mb-1.5 truncate text-xs text-muted">{ch.description}</p>
+                  )}
                   <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
                     <div
                       className="h-full bg-you"

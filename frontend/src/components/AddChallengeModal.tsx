@@ -28,6 +28,7 @@ export default function AddChallengeModal({
   const weekdays = t('weekdays', { returnObjects: true }) as string[]
 
   const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
   const [icon, setIcon] = useState<string>('📖')
   const [cadence, setCadence] = useState<'daily' | 'weekly_days'>('daily')
   const [days, setDays] = useState<number[]>([])
@@ -37,12 +38,14 @@ export default function AddChallengeModal({
   useEffect(() => {
     if (open && edit) {
       setName(edit.template_key ? t(`tpl.${edit.template_key}`) : edit.name)
+      setDescription(edit.description ?? '')
       setIcon(edit.icon)
       setCadence(edit.cadence === 'weekly_days' ? 'weekly_days' : 'daily')
       setDays(edit.weekdays ?? [])
       setProof(edit.proof_type === 'screenshot' ? 'screenshot' : 'camera')
     } else if (open && !edit) {
       setName('')
+      setDescription('')
       setIcon('📖')
       setCadence('daily')
       setDays([])
@@ -62,6 +65,7 @@ export default function AddChallengeModal({
     const payload: ChallengeInput = {
       template_key: edit?.template_key ?? null,
       name: name.trim(),
+      description: description.trim() || null,
       icon,
       cadence,
       weekdays: cadence === 'weekly_days' ? days : [],
@@ -121,6 +125,15 @@ export default function AddChallengeModal({
               placeholder={t('create.customPlaceholder')}
               disabled={!!edit?.template_key}
               className="mb-3 w-full rounded-2xl border border-line bg-surface-2 px-4 py-3 text-text outline-none focus:border-you disabled:opacity-60"
+            />
+
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t('crud.descPlaceholder')}
+              rows={2}
+              maxLength={200}
+              className="mb-3 w-full resize-none rounded-2xl border border-line bg-surface-2 px-4 py-3 text-sm text-text outline-none focus:border-you"
             />
 
             <div className="mb-4 grid grid-cols-8 gap-1.5">

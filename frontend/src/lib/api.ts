@@ -64,6 +64,7 @@ export type Challenge = {
   battle_id: number
   template_key: string | null
   name: string
+  description?: string | null
   icon: string
   cadence: string
   weekdays: number[]
@@ -210,6 +211,7 @@ export function useSeed() {
 export type ChallengeInput = {
   template_key: string | null
   name: string
+  description?: string | null
   icon: string
   cadence: 'daily' | 'weekly_days'
   weekdays: number[]

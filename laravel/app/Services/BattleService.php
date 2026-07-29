@@ -48,6 +48,7 @@ class BattleService
             $battle->challenges()->create([
                 'template_key' => $data['template_key'] ?? null,
                 'name' => $data['name'] ?? '',
+                'description' => $data['description'] ?? null,
                 'icon' => $data['icon'] ?? '🎯',
                 'cadence' => $data['cadence'] ?? Cadence::Daily->value,
                 'weekdays' => $data['weekdays'] ?? [],
@@ -72,6 +73,7 @@ class BattleService
         $challenge = $battle->challenges()->create([
             'template_key' => $data['template_key'] ?? null,
             'name' => $data['name'] ?? '',
+            'description' => $data['description'] ?? null,
             'icon' => $data['icon'] ?? '🎯',
             'cadence' => $data['cadence'] ?? Cadence::Daily->value,
             'weekdays' => $data['weekdays'] ?? [],
@@ -82,10 +84,11 @@ class BattleService
         ]);
 
         $label = $this->challengeLabel($challenge, $data['template_key'] ?? null);
+        $desc = $challenge->description ? "\n<i>{$challenge->description}</i>" : '';
         $this->notifications->notify(
             $this->access->otherTelegramIds($battle->id, $user->id),
             "🆕 <b>{$user->first_name}</b> yangi challenge taklif qildi:\n"
-                ."{$challenge->icon} <b>{$label}</b>\n\nQabul qilasanmi? Ilovada ko'r 👇",
+                ."{$challenge->icon} <b>{$label}</b>{$desc}\n\nQabul qilasanmi? Ilovada ko'r 👇",
         );
 
         return $challenge;
@@ -204,9 +207,13 @@ class BattleService
         $challenge = $battle->challenges()->findOrFail($challengeId);
         $challenge->update([
             'name' => $data['name'] ?? $challenge->name,
+            'description' => array_key_exists('description', $data)
+                ? ($data['description'] ?: null)
+                : $challenge->description,
             'icon' => $data['icon'] ?? $challenge->icon,
             'cadence' => $data['cadence'] ?? $challenge->cadence->value,
             'weekdays' => $data['weekdays'] ?? $challenge->weekdays,
+            'proof_type' => $data['proof_type'] ?? $challenge->proof_type->value,
         ]);
 
         return $challenge;

@@ -25,7 +25,7 @@ use Illuminate\Support\Carbon;
 class Challenge extends Model
 {
     protected $fillable = [
-        'battle_id', 'template_key', 'name', 'icon',
+        'battle_id', 'template_key', 'name', 'description', 'icon',
         'cadence', 'weekdays', 'start_date', 'active',
         'pending', 'proposed_by', 'proof_type',
     ];
