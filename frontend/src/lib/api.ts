@@ -176,14 +176,13 @@ export function useVerify() {
         method: 'POST',
         body: JSON.stringify({ approve: vars.approve }),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['verify-queue'] }),
-  })
-}
-
-export function useDispute() {
-  return useMutation({
-    mutationFn: (completionId: number) =>
-      apiFetch(`/completions/${completionId}/dispute`, { method: 'POST' }),
+    onSuccess: () => {
+      // Tasdiqlangach ball o'zgaradi — barcha bog'liq ko'rinishlarni yangilash
+      qc.invalidateQueries({ queryKey: ['verify-queue'] })
+      qc.invalidateQueries({ queryKey: ['battles'] })
+      qc.invalidateQueries({ queryKey: ['battle'] })
+      qc.invalidateQueries({ queryKey: ['today'] })
+    },
   })
 }
 
@@ -256,7 +255,13 @@ export function useAcceptInvite() {
       apiFetch<{ ok: boolean; battle_id: number }>(`/battles/${token}/accept`, {
         method: 'POST',
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['battles'] }),
+    onSuccess: () => {
+      // Qo'shilgach: battle aktiv bo'ladi, ishtirokchi qo'shiladi, taklif holati o'zgaradi
+      qc.invalidateQueries({ queryKey: ['battles'] })
+      qc.invalidateQueries({ queryKey: ['battle'] })
+      qc.invalidateQueries({ queryKey: ['today'] })
+      qc.invalidateQueries({ queryKey: ['invite'] })
+    },
   })
 }
 
@@ -337,6 +342,11 @@ export function useDisputeMut() {
   return useMutation({
     mutationFn: (completionId: number) =>
       apiFetch(`/completions/${completionId}/dispute`, { method: 'POST' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['verify-queue'] }),
+    onSuccess: () => {
+      // E'tiroz: rad etilgan hisobot qayta pending bo'ladi — o'z chip'i va raqib navbati o'zgaradi
+      qc.invalidateQueries({ queryKey: ['verify-queue'] })
+      qc.invalidateQueries({ queryKey: ['today'] })
+      qc.invalidateQueries({ queryKey: ['battle'] })
+    },
   })
 }

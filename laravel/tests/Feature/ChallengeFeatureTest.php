@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\CompletionStatus;
 use App\Models\Battle;
 use App\Models\BattleParticipant;
 use App\Models\Challenge;
+use App\Models\Completion;
 use App\Models\User;
 use App\Support\Clock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -257,5 +259,69 @@ class ChallengeFeatureTest extends TestCase
 
         $proposed = Challenge::where('name', 'Meditation')->firstOrFail();
         $this->assertSame('proposed with description', $proposed->description);
+    }
+
+    // 6. Approving a completion credits the completing user's score server-side.
+    //    (Confirms the reported "score doesn't count after accept" is a frontend-only issue.)
+
+    public function test_approving_completion_credits_completing_user_score(): void
+    {
+        // A creates a battle with one DAILY challenge, starting today.
+        ['battle' => $battle, 'challenge' => $challenge, 'userB' => $userB] = $this->makeBattle([
+            'cadence' => 'daily',
+            'weekdays' => [],
+        ]);
+        $userA = User::where('telegram_id', self::TG_A)->firstOrFail();
+
+        $this->assertSame(
+            Clock::todayLocal()->toDateString(),
+            $challenge->start_date->toDateString(),
+            'challenge should start today',
+        );
+
+        // B submits a completion today (Pending). Created via Eloquent to avoid multipart/PhotoService.
+        $completion = Completion::create([
+            'challenge_id' => $challenge->id,
+            'user_id' => $userB->id,
+            'day' => Clock::todayLocal()->toDateString(),
+            'status' => CompletionStatus::Pending,
+            'file_id' => 'dummy-file-id',
+            'submitted_at' => now(),
+        ]);
+
+        // A approves it.
+        $verify = $this->asTg(self::TG_A)->postJson(
+            "/api/completions/{$completion->id}/verify",
+            ['approve' => true],
+        );
+        $verify->assertStatus(200);
+        $this->assertSame(CompletionStatus::Approved, $completion->fresh()->status);
+
+        // GET battle detail and inspect per-player breakdown + score.
+        $detail = $this->asTg(self::TG_A)->getJson("/api/battles/{$battle->id}");
+        $detail->assertStatus(200);
+
+        $playerB = collect($detail->json('players'))
+            ->firstWhere('user.id', $userB->id);
+        $playerA = collect($detail->json('players'))
+            ->firstWhere('user.id', $userA->id);
+
+        $this->assertNotNull($playerB, 'user B must be a player in the battle detail');
+        $this->assertNotNull($playerA, 'user A must be a player in the battle detail');
+
+        // B (completed + approved): breakdown for this challenge == 1, score >= 1.
+        $this->assertSame(
+            1,
+            $playerB['breakdown'][(string) $challenge->id] ?? null,
+            'approved completion must count as 1 in B breakdown',
+        );
+        $this->assertGreaterThanOrEqual(1, $playerB['score'], 'B score must be credited >= 1');
+
+        // A (did not complete): breakdown for this challenge == 0.
+        $this->assertSame(
+            0,
+            $playerA['breakdown'][(string) $challenge->id] ?? null,
+            'A did not complete, breakdown must be 0',
+        );
     }
 }
