@@ -65,7 +65,15 @@
     "dispute": "İtiraz",
     "submittedAt": "Gönderildi"
   },
-  "weekdays": ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
+  "weekdays": [
+    "Pzt",
+    "Sal",
+    "Çar",
+    "Per",
+    "Cum",
+    "Cmt",
+    "Paz"
+  ],
   "create": {
     "title": "Yeni düello",
     "battleName": "Düello adı",
@@ -87,7 +95,10 @@
     "copy": "Bağlantıyı kopyala",
     "copied": "Kopyalandı!"
   },
-  "chat2": { "send": "Gönder", "placeholder": "Mesaj…" },
+  "chat2": {
+    "send": "Gönder",
+    "placeholder": "Mesaj…"
+  },
   "invite": {
     "title": "Düello daveti",
     "by": "sana meydan okuyor",
@@ -121,7 +132,10 @@
     "editTitle": "Adı düzenle",
     "shareInvite": "Davet bağlantısı",
     "deleteBattle": "Düelloyu sil",
-    "confirmDeleteBattle": "Tüm düello silinsin mi? Geri alınamaz."
+    "confirmDeleteBattle": "Tüm düello silinsin mi? Geri alınamaz.",
+    "startWhen": "Başlangıç",
+    "startToday": "Bugün",
+    "startTomorrow": "Yarın"
   },
   "tpl": {
     "read": "Okuma",

@@ -33,6 +33,7 @@ export default function AddChallengeModal({
   const [cadence, setCadence] = useState<'daily' | 'weekly_days'>('daily')
   const [days, setDays] = useState<number[]>([])
   const [proof, setProof] = useState<'camera' | 'screenshot'>('camera')
+  const [startTomorrow, setStartTomorrow] = useState(false)
 
   // edit ochilganda mavjud qiymatlar bilan to'ldirish
   useEffect(() => {
@@ -43,6 +44,7 @@ export default function AddChallengeModal({
       setCadence(edit.cadence === 'weekly_days' ? 'weekly_days' : 'daily')
       setDays(edit.weekdays ?? [])
       setProof(edit.proof_type === 'screenshot' ? 'screenshot' : 'camera')
+      setStartTomorrow(false)
     } else if (open && !edit) {
       setName('')
       setDescription('')
@@ -50,6 +52,7 @@ export default function AddChallengeModal({
       setCadence('daily')
       setDays([])
       setProof('camera')
+      setStartTomorrow(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, edit?.id])
@@ -70,6 +73,7 @@ export default function AddChallengeModal({
       cadence,
       weekdays: cadence === 'weekly_days' ? days : [],
       proof_type: proof,
+      start_tomorrow: startTomorrow,
     }
     if (edit) {
       update.mutate({ id: edit.id, data: payload }, { onSuccess: onClose })
@@ -180,6 +184,31 @@ export default function AddChallengeModal({
                   </button>
                 ))}
               </div>
+            )}
+
+            {/* Boshlanish — bugun yoki ertaga (faqat yangi qo'shishda) */}
+            {!edit && (
+              <>
+                <p className="mt-4 mb-2 text-xs tracking-[0.18em] text-muted uppercase">
+                  {t('crud.startWhen')}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStartTomorrow(false)}
+                    className={`flex-1 rounded-xl border py-2.5 text-sm transition ${!startTomorrow ? 'border-you bg-you/10 text-you' : 'border-line text-muted'}`}
+                  >
+                    {t('crud.startToday')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStartTomorrow(true)}
+                    className={`flex-1 rounded-xl border py-2.5 text-sm transition ${startTomorrow ? 'border-you bg-you/10 text-you' : 'border-line text-muted'}`}
+                  >
+                    {t('crud.startTomorrow')}
+                  </button>
+                </div>
+              </>
             )}
 
             {/* Isbot turi — kamera yoki skrinshot (SPEC §9) */}

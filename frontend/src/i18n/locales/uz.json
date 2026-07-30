@@ -65,7 +65,15 @@
     "dispute": "Nizo",
     "submittedAt": "Yuborilgan"
   },
-  "weekdays": ["Du", "Se", "Cho", "Pa", "Ju", "Sh", "Ya"],
+  "weekdays": [
+    "Du",
+    "Se",
+    "Cho",
+    "Pa",
+    "Ju",
+    "Sh",
+    "Ya"
+  ],
   "create": {
     "title": "Yangi battle",
     "battleName": "Battle nomi",
@@ -87,7 +95,10 @@
     "copy": "Havolani nusxalash",
     "copied": "Nusxalandi!"
   },
-  "chat2": { "send": "Yuborish", "placeholder": "Xabar…" },
+  "chat2": {
+    "send": "Yuborish",
+    "placeholder": "Xabar…"
+  },
   "invite": {
     "title": "Duel taklifi",
     "by": "seni chaqiryapti",
@@ -121,7 +132,10 @@
     "editTitle": "Nomni tahrirlash",
     "shareInvite": "Taklif havolasi",
     "deleteBattle": "Battle'ni o'chirish",
-    "confirmDeleteBattle": "Butun battle o'chirilsinmi? Qaytarib bo'lmaydi."
+    "confirmDeleteBattle": "Butun battle o'chirilsinmi? Qaytarib bo'lmaydi.",
+    "startWhen": "Boshlanish",
+    "startToday": "Bugun",
+    "startTomorrow": "Ertaga"
   },
   "tpl": {
     "read": "O'qish",

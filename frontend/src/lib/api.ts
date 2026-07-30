@@ -221,6 +221,7 @@ export type ChallengeInput = {
   cadence: 'daily' | 'weekly_days'
   weekdays: number[]
   proof_type?: ProofType
+  start_tomorrow?: boolean
 }
 
 export function useCreateBattle() {

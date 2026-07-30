@@ -68,7 +68,9 @@ class BattleService
      */
     public function addChallenge(User $user, Battle $battle, array $data): Challenge
     {
-        $start = Clock::todayLocal();
+        $start = ($data['start_tomorrow'] ?? false)
+            ? Clock::todayLocal()->addDay()
+            : Clock::todayLocal();
 
         $challenge = $battle->challenges()->create([
             'template_key' => $data['template_key'] ?? null,
@@ -110,9 +112,16 @@ class BattleService
             );
         }
 
+        // Taklif paytida tanlangan boshlanish sanasini saqlaymiz (ertaga bo'lsa ertaga),
+        // faqat o'tib ketgan bo'lsa bugundan boshlaymiz.
+        $today = Clock::todayLocal();
+        $start = $challenge->start_date->toDateString() > $today->toDateString()
+            ? $challenge->start_date->toDateString()
+            : $today->toDateString();
+
         $challenge->update([
             'pending' => false,
-            'start_date' => Clock::todayLocal()->toDateString(),
+            'start_date' => $start,
         ]);
 
         $proposer = User::find($challenge->proposed_by);

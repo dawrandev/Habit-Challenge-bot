@@ -27,6 +27,7 @@ class AddChallengeRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:200'],
             'icon' => ['nullable', 'string', 'max:16'],
             'cadence' => ['required', Rule::enum(Cadence::class)],
+            'start_tomorrow' => ['boolean'],
             'proof_type' => ['nullable', Rule::enum(ProofType::class)],
             'weekdays' => ['array'],
             'weekdays.*' => ['integer', 'between:0,6'],

@@ -65,7 +65,15 @@
     "dispute": "Dispute",
     "submittedAt": "Submitted"
   },
-  "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  "weekdays": [
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    "Sun"
+  ],
   "create": {
     "title": "New battle",
     "battleName": "Battle name",
@@ -87,7 +95,10 @@
     "copy": "Copy link",
     "copied": "Copied!"
   },
-  "chat2": { "send": "Send", "placeholder": "Message…" },
+  "chat2": {
+    "send": "Send",
+    "placeholder": "Message…"
+  },
   "invite": {
     "title": "Duel invite",
     "by": "challenges you",
@@ -121,7 +132,10 @@
     "editTitle": "Edit name",
     "shareInvite": "Invite link",
     "deleteBattle": "Delete battle",
-    "confirmDeleteBattle": "Delete the whole battle? This can't be undone."
+    "confirmDeleteBattle": "Delete the whole battle? This can't be undone.",
+    "startWhen": "Start",
+    "startToday": "Today",
+    "startTomorrow": "Tomorrow"
   },
   "tpl": {
     "read": "Reading",
