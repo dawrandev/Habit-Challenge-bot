@@ -314,7 +314,11 @@ class BattleService
                 ->whereDate('day', $today->toDateString())
                 ->first();
 
-            $out[] = ['challenge' => $challenge, 'status' => $completion?->status->value];
+            $out[] = [
+                'challenge' => $challenge,
+                'status' => $completion?->status->value,
+                'completion_id' => $completion?->id,
+            ];
         }
 
         return $out;

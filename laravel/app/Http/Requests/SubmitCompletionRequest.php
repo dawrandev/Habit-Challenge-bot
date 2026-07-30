@@ -21,6 +21,7 @@ class SubmitCompletionRequest extends FormRequest
         return [
             'challenge_id' => ['required', 'integer', 'exists:challenges,id'],
             'file' => ['required', 'image', 'max:8192'], // 8MB
+            'note' => ['nullable', 'string', 'max:280'],
         ];
     }
 }

@@ -26,7 +26,7 @@ class CompletionService
         private readonly BattleAccess $access,
     ) {}
 
-    public function submit(User $user, int $challengeId, string $contents, string $filename = 'proof.jpg'): Completion
+    public function submit(User $user, int $challengeId, string $contents, string $filename = 'proof.jpg', ?string $note = null): Completion
     {
         $challenge = Challenge::find($challengeId)
             ?? throw new NotFoundHttpException('Challenge topilmadi');
@@ -43,6 +43,7 @@ class CompletionService
             ['challenge_id' => $challengeId, 'user_id' => $user->id, 'day' => $day],
             [
                 'file_id' => $fileId,
+                'note' => $note,
                 'status' => CompletionStatus::Pending,
                 'submitted_at' => now(),
                 'resolved_at' => null,

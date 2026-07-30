@@ -30,6 +30,7 @@ export default function ProofCapturePage() {
 
   const [phase, setPhase] = useState<Phase>('loading')
   const [shot, setShot] = useState<string | null>(null)
+  const [note, setNote] = useState('')
 
   async function startCamera() {
     setPhase('loading')
@@ -103,7 +104,11 @@ export default function ProofCapturePage() {
     if (!blobRef.current || !challengeId) return
     setPhase('sending')
     try {
-      await submitMut.mutateAsync({ challengeId: Number(challengeId), blob: blobRef.current })
+      await submitMut.mutateAsync({
+        challengeId: Number(challengeId),
+        blob: blobRef.current,
+        note: note.trim() || undefined,
+      })
       stopCamera()
       setPhase('sent')
       setTimeout(() => navigate(-1), 900)
@@ -238,6 +243,17 @@ export default function ProofCapturePage() {
               <span className="h-14 w-14 rounded-full bg-white" />
             </button>
           </div>
+        )}
+
+        {(phase === 'captured' || phase === 'sending') && (
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={t('proof.notePlaceholder')}
+            maxLength={280}
+            disabled={phase === 'sending'}
+            className="mb-3 w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-white/50 outline-none focus:border-you disabled:opacity-50"
+          />
         )}
 
         {(phase === 'captured' || phase === 'sending') && (

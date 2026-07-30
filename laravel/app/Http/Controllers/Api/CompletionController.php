@@ -27,6 +27,7 @@ class CompletionController extends Controller
             challengeId: $request->integer('challenge_id'),
             contents: $request->file('file')->get(),
             filename: 'proof.jpg',
+            note: $request->filled('note') ? trim((string) $request->input('note')) : null,
         );
     }
 

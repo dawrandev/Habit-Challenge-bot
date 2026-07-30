@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $day
  * @property CompletionStatus $status
  * @property string|null $file_id
+ * @property string|null $note
  * @property Carbon|null $submitted_at
  * @property Carbon|null $resolved_at
  */
@@ -24,7 +25,7 @@ class Completion extends Model
 {
     protected $fillable = [
         'challenge_id', 'user_id', 'day', 'status',
-        'file_id', 'submitted_at', 'resolved_at',
+        'file_id', 'note', 'submitted_at', 'resolved_at',
     ];
 
     protected function casts(): array

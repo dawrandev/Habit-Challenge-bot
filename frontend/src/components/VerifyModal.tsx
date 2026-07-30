@@ -9,6 +9,7 @@ export type VerifyItem = {
   label: string
   fileId?: string | null
   submittedAt?: string | null
+  note?: string | null
 }
 
 function formatTime(iso?: string | null): string | null {
@@ -87,6 +88,13 @@ export default function VerifyModal({
                 </div>
               )}
             </div>
+
+            {item.note && (
+              <div className="mb-3 rounded-2xl border border-line bg-surface-2 px-4 py-2.5 text-sm">
+                <span className="mr-1">💬</span>
+                {item.note}
+              </div>
+            )}
 
             <p className="mb-4 text-center text-sm text-muted">
               {t('verify.question')}

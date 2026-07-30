@@ -84,6 +84,7 @@ export default function ActivityPage() {
                 label: labelOf(selected),
                 fileId: selected.completion.file_id,
                 submittedAt: selected.completion.created_at,
+                note: selected.completion.note,
               }
             : null
         }

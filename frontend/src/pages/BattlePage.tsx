@@ -7,6 +7,7 @@ import BattleSettingsModal from '../components/BattleSettingsModal'
 import {
   useBattle,
   useDeleteChallenge,
+  useDisputeMut,
   useRespondChallenge,
   useToday,
   type Challenge,
@@ -136,6 +137,7 @@ export default function BattlePage() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const respond = useRespondChallenge(id!)
   const removeCh = useDeleteChallenge(id!)
+  const dispute = useDisputeMut()
 
   if (isLoading || !data) {
     return (
@@ -363,28 +365,47 @@ export default function BattlePage() {
             const chip = statusChip(task.status, t)
             const done =
               task.status === 'approved' || task.status === 'auto_approved'
+            const rejected = task.status === 'rejected'
             return (
-              <button
+              <div
                 key={task.challenge.id}
-                type="button"
-                disabled={done}
-                onClick={() =>
-                  navigate(
-                    `/battle/${data.battle.id}/proof/${task.challenge.id}?type=${task.challenge.proof_type ?? 'camera'}`,
-                  )
-                }
-                className="flex w-full items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-left transition active:scale-[0.98] disabled:opacity-60"
+                className="flex items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3 transition"
               >
-                <span className="text-lg">{task.challenge.icon}</span>
-                <span className="flex-1 text-sm">
-                  {nameOf(task.challenge.template_key, task.challenge.name)}
-                </span>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-medium ${chip.cls}`}
+                <button
+                  type="button"
+                  disabled={done}
+                  onClick={() =>
+                    navigate(
+                      `/battle/${data.battle.id}/proof/${task.challenge.id}?type=${task.challenge.proof_type ?? 'camera'}`,
+                    )
+                  }
+                  className="flex flex-1 items-center gap-3 text-left transition active:scale-[0.98] disabled:opacity-60"
                 >
-                  {chip.label}
-                </span>
-              </button>
+                  <span className="text-lg">{task.challenge.icon}</span>
+                  <span className="flex-1 text-sm">
+                    {nameOf(task.challenge.template_key, task.challenge.name)}
+                  </span>
+                </button>
+                {rejected && task.completion_id ? (
+                  <button
+                    type="button"
+                    disabled={dispute.isPending}
+                    onClick={() => {
+                      if (!window.confirm(t('crud.disputeConfirm'))) return
+                      dispute.mutate(task.completion_id!)
+                    }}
+                    className="rounded-full bg-you/15 px-2.5 py-1 text-xs font-medium text-you transition active:scale-95 disabled:opacity-50"
+                  >
+                    ⚑ {t('verify.dispute')}
+                  </button>
+                ) : (
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${chip.cls}`}
+                  >
+                    {chip.label}
+                  </span>
+                )}
+              </div>
             )
           })}
           {today && today.length === 0 && (

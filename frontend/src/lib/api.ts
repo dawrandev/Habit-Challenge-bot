@@ -94,7 +94,11 @@ export type BattleDetail = {
   challenges: Challenge[]
 }
 
-export type TodayTask = { challenge: Challenge; status: string | null }
+export type TodayTask = {
+  challenge: Challenge
+  status: string | null
+  completion_id: number | null
+}
 
 export type ChatMsg = {
   id: number
@@ -111,6 +115,7 @@ export type QueueItem = {
     day: string
     status: string
     file_id: string | null
+    note: string | null
     created_at: string | null
   }
   challenge: Challenge
@@ -155,10 +160,11 @@ export const useMessages = (id: number | string) =>
 export function useSubmitProof(battleId: number | string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (vars: { challengeId: number; blob: Blob }) => {
+    mutationFn: (vars: { challengeId: number; blob: Blob; note?: string }) => {
       const fd = new FormData()
       fd.append('challenge_id', String(vars.challengeId))
       fd.append('file', vars.blob, 'proof.jpg')
+      if (vars.note?.trim()) fd.append('note', vars.note.trim())
       return apiFetch('/completions', { method: 'POST', body: fd })
     },
     onSuccess: () => {
