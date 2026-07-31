@@ -190,6 +190,115 @@ class ScoringConsistencyTest extends TestCase
         );
     }
 
+    private function approvedOn(int $challengeId, int $userId, string $day): Completion
+    {
+        return Completion::create([
+            'challenge_id' => $challengeId,
+            'user_id' => $userId,
+            'day' => $day,
+            'status' => CompletionStatus::Approved,
+            'file_id' => 'dev-file',
+            'submitted_at' => now(),
+            'resolved_at' => now(),
+        ]);
+    }
+
+    // 5. Pre-battle days are NOT penalized (effective start = max(challenge, battle) start).
+
+    public function test_pre_battle_days_are_not_penalized(): void
+    {
+        ['battle' => $battle, 'userB' => $userB] = $this->makeBattle($this->singleDaily());
+        $challenge = $battle->challenges()->firstOrFail();
+
+        $yesterday = Clock::todayLocal()->subDays(1)->toDateString();  // battle start
+        $dayBeforeStart = Clock::todayLocal()->subDays(2)->toDateString(); // challenge start (pre-battle)
+
+        // Battle started yesterday; challenge start_date is one day BEFORE the battle.
+        $battle->update(['start_date' => $yesterday]);
+        $challenge->update(['start_date' => $dayBeforeStart]);
+
+        // One approved completion on the battle's first day (yesterday).
+        $this->approvedOn($challenge->id, $userB->id, $yesterday);
+
+        $playerB = $this->playerB($battle, $userB->id);
+
+        // Effective start = battle start (yesterday). Due days: yesterday (approved +1), today (not over, 0).
+        // The pre-battle day (day-2) must NOT be counted as a miss.
+        $this->assertSame(1, $playerB['breakdown'][(string) $challenge->id] ?? null);
+        $this->assertEqualsWithDelta(
+            1.0,
+            $playerB['score'],
+            0.0001,
+            'pre-battle day must not be penalized: score is +1.0, not 0.5',
+        );
+    }
+
+    // 6. Reported case: 4 challenges each with one approval on battle's first day -> total 4.0.
+
+    public function test_reported_multi_challenge_pre_battle_bug(): void
+    {
+        ['battle' => $battle, 'userB' => $userB] = $this->makeBattle([
+            ['name' => 'C1', 'icon' => '💪', 'cadence' => 'daily', 'proof_type' => 'camera', 'weekdays' => []],
+            ['name' => 'C2', 'icon' => '📚', 'cadence' => 'daily', 'proof_type' => 'screenshot', 'weekdays' => []],
+            ['name' => 'C3', 'icon' => '🏃', 'cadence' => 'daily', 'proof_type' => 'camera', 'weekdays' => []],
+            ['name' => 'C4', 'icon' => '🧘', 'cadence' => 'daily', 'proof_type' => 'camera', 'weekdays' => []],
+            ['name' => 'C5', 'icon' => '🎯', 'cadence' => 'daily', 'proof_type' => 'camera', 'weekdays' => []],
+        ]);
+
+        $yesterday = Clock::todayLocal()->subDays(1)->toDateString();      // battle start
+        $dayBeforeStart = Clock::todayLocal()->subDays(2)->toDateString(); // challenge start (pre-battle)
+        $battle->update(['start_date' => $yesterday]);
+
+        $challenges = $battle->challenges()->orderBy('id')->get();
+        // First 4 challenges: start pre-battle, each with an approval on the battle's first day.
+        foreach ($challenges->take(4) as $challenge) {
+            $challenge->update(['start_date' => $dayBeforeStart]);
+            $this->approvedOn($challenge->id, $userB->id, $yesterday);
+        }
+        // 5th challenge: starts today, no completion.
+        $c5 = $challenges[4];
+        $c5->update(['start_date' => Clock::todayLocal()->toDateString()]);
+
+        $playerB = $this->playerB($battle, $userB->id);
+
+        foreach ($challenges->take(4) as $challenge) {
+            $this->assertSame(1, $playerB['breakdown'][(string) $challenge->id] ?? null);
+        }
+        $this->assertSame(0, $playerB['breakdown'][(string) $c5->id] ?? null);
+
+        // Each of the 4 contributes +1 (no pre-battle penalty, today not over); 5th contributes 0.
+        $this->assertEqualsWithDelta(
+            4.0,
+            $playerB['score'],
+            0.0001,
+            'reported bug: should be 4.0 (was 2.0 when pre-battle days were penalized)',
+        );
+    }
+
+    // 7. A challenge that legitimately starts AFTER battle start uses its own (later) start.
+
+    public function test_challenge_starting_after_battle_uses_its_own_start(): void
+    {
+        ['battle' => $battle, 'userB' => $userB] = $this->makeBattle($this->singleDaily());
+        $challenge = $battle->challenges()->firstOrFail();
+
+        // Battle started 3 days ago; challenge added today (starts today).
+        $battle->update(['start_date' => Clock::todayLocal()->subDays(3)->toDateString()]);
+        $challenge->update(['start_date' => Clock::todayLocal()->toDateString()]);
+
+        // No completion. Effective start = challenge start (today, the later date).
+        // Only due-day is today, which is not over -> no penalty for the 3 earlier battle days.
+        $playerB = $this->playerB($battle, $userB->id);
+
+        $this->assertSame(0, $playerB['breakdown'][(string) $challenge->id] ?? null);
+        $this->assertEqualsWithDelta(
+            0.0,
+            $playerB['score'],
+            0.0001,
+            'challenge starting today is not retroactively penalized for pre-existence battle days',
+        );
+    }
+
     /**
      * @return array<string, mixed>
      */

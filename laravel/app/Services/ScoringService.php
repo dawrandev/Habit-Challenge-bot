@@ -29,6 +29,7 @@ class ScoringService
         $tz = (string) config('telegram.timezone');
         $today = Clock::todayLocal();
         $end = CarbonImmutable::parse($battle->end_date->toDateString(), $tz);
+        $battleStart = CarbonImmutable::parse($battle->start_date->toDateString(), $tz);
 
         $challengeScores = [];
         $breakdown = [];
@@ -46,10 +47,15 @@ class ScoringService
                 ->map(fn ($day) => CarbonImmutable::parse($day)->format('Y-m-d'))
                 ->all();
 
+            // Effektiv boshlanish — challenge start battle start'dan oldin bo'la olmaydi
+            // (aks holda battle boshlanishidan oldingi kunlar jarima bo'lib ketardi).
+            $challengeStart = CarbonImmutable::parse($challenge->start_date->toDateString(), $tz);
+            $effectiveStart = $challengeStart->greaterThan($battleStart) ? $challengeStart : $battleStart;
+
             $score = new ChallengeScore(
                 $challenge->cadence,
                 $challenge->weekdaysList(),
-                CarbonImmutable::parse($challenge->start_date->toDateString(), $tz),
+                $effectiveStart,
                 $approvedDays,
             );
 
