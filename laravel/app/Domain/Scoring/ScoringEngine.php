@@ -12,12 +12,10 @@ use Carbon\CarbonImmutable;
  *
  * Qoidalar:
  *   - Tasdiqlangan bajarish: +points_per_completion (1.0)
- *   - Umumiy ball = har challenge bo'yicha to'plangan bajarishlar yig'indisi
- *     (ya'ni tepadagi umumiy hisob = pastdagi challenge ballari yig'indisi — doim mos)
- *   - Ball floor (0) dan past bo'lmaydi
- *
- * Eslatma: o'tkazib yuborilgan kun uchun jarima (penalty_per_miss) endi umumiy
- * balldan ayirilmaydi — to'plangan ball tepada yashirinib qolmasligi uchun.
+ *   - O'tkazib yuborilgan navbatdagi kun (kun tugagan): -penalty_per_miss (0.5)
+ *   - Bugungi hali hal bo'lmagan kun: 0
+ *   - Umumiy ball manfiy bo'lishi mumkin (floor yo'q) — bajarilgan ball hech qachon
+ *     yashirinmaydi, o'tkazib yuborish esa ballni pasaytiradi.
  */
 final class ScoringEngine
 {
@@ -60,16 +58,23 @@ final class ScoringEngine
      */
     public function participantScore(array $challenges, CarbonImmutable $today, CarbonImmutable $endDate): float
     {
+        $lastDay = $today->lessThanOrEqualTo($endDate) ? $today : $endDate;
         $total = 0.0;
 
-        // Umumiy ball = har challenge bo'yicha to'plangan bajarishlar yig'indisi.
-        // challengeCompletions() bilan bir manba — shuning uchun tepadagi umumiy
-        // hisob doim pastdagi challenge ballari yig'indisiga teng bo'ladi.
         foreach ($challenges as $challenge) {
-            $total += $this->pointsPerCompletion * $this->challengeCompletions($challenge, $today, $endDate);
+            foreach ($this->dueDays($challenge->cadence, $challenge->weekdays, $challenge->startDate, $lastDay) as $day) {
+                if ($challenge->isApproved($day)) {
+                    $total += $this->pointsPerCompletion;
+                } elseif ($day->lessThan($today)) {
+                    // kun tugagan, tasdiqlangan bajarish yo'q → jarima
+                    $total -= $this->penaltyPerMiss;
+                }
+                // bugun va tasdiqlanmagan → 0 (kun tugamagan)
+            }
         }
 
-        return max($this->floor, $total);
+        // Floor yo'q — ball manfiy bo'lishi mumkin (bajarilgan ball yashirinmasin).
+        return $total;
     }
 
     /**

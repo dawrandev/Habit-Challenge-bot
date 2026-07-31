@@ -94,8 +94,9 @@ function ScoreNumber({
 }
 
 function TugOfWar({ you, rival }: { you: number; rival: number }) {
-  const total = Math.max(you + rival, 1)
-  const youPct = Math.round((you / total) * 100)
+  // Ball manfiy bo'lishi mumkin — nisbiy ustunlikni 0..100 oralig'iga solamiz
+  const mag = Math.max(Math.abs(you), Math.abs(rival), 1)
+  const youPct = Math.min(96, Math.max(4, Math.round(50 + ((you - rival) / (2 * mag)) * 100)))
   return (
     <div className="relative">
       <div className="flex h-4 w-full overflow-hidden rounded-full bg-surface-2">
