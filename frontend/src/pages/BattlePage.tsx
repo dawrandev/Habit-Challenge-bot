@@ -70,17 +70,28 @@ function Avatar({
   )
 }
 
+/* Ball qancha uzun bo'lsa, shuncha kichik — kartadan chiqib ketmasligi uchun */
+function scoreSizeCls(a: number, b: number) {
+  const len = Math.max(fmt(a).length, fmt(b).length)
+  if (len <= 2) return 'text-6xl'
+  if (len === 3) return 'text-5xl'
+  if (len === 4) return 'text-4xl'
+  return 'text-3xl'
+}
+
 function ScoreNumber({
   value,
   color,
   leading,
+  sizeCls,
 }: {
   value: number
   color: 'you' | 'rival'
   leading: boolean
+  sizeCls: string
 }) {
   const display = useCountUp(value)
-  const base = 'font-display text-6xl leading-none tabular'
+  const base = `font-display ${sizeCls} leading-none tabular whitespace-nowrap`
   if (leading) {
     return (
       <span className={`${base} ${color === 'you' ? 'flame-you' : 'flame-rival'}`}>
@@ -157,6 +168,7 @@ export default function BattlePage() {
   const myScore = me?.score ?? 0
   const rivalScore = rival?.score ?? 0
   const diff = myScore - rivalScore
+  const scoreSize = scoreSizeCls(myScore, rivalScore)
   const tl = timeLeft(data.battle.end_date)
 
   const statusText =
@@ -200,27 +212,41 @@ export default function BattlePage() {
 
       <section className="rise-in px-5" style={{ animationDelay: '0.02s' }}>
         <div className="rounded-3xl border border-line bg-surface p-5 shadow-2xl shadow-black/40">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex w-14 shrink-0 flex-col items-center gap-2">
               <Avatar
                 initials={t('common.you')[0]}
                 color="you"
                 photo={me?.user.photo_url}
               />
-              <span className="text-xs text-muted">{t('common.you')}</span>
+              <span className="max-w-full truncate text-xs text-muted">
+                {t('common.you')}
+              </span>
             </div>
-            <div className="flex items-end gap-3">
-              <ScoreNumber value={myScore} color="you" leading={diff >= 0} />
-              <span className="vs-pulse mb-2 font-display text-lg text-muted">vs</span>
-              <ScoreNumber value={rivalScore} color="rival" leading={diff < 0} />
+            <div className="flex min-w-0 flex-1 items-end justify-center gap-2">
+              <ScoreNumber
+                value={myScore}
+                color="you"
+                leading={diff >= 0}
+                sizeCls={scoreSize}
+              />
+              <span className="vs-pulse mb-1.5 font-display text-base text-muted">
+                vs
+              </span>
+              <ScoreNumber
+                value={rivalScore}
+                color="rival"
+                leading={diff < 0}
+                sizeCls={scoreSize}
+              />
             </div>
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex w-14 shrink-0 flex-col items-center gap-2">
               <Avatar
                 initials={(rival?.user.first_name ?? '?')[0]}
                 color="rival"
                 photo={rival?.user.photo_url}
               />
-              <span className="text-xs text-muted">
+              <span className="max-w-full truncate text-xs text-muted">
                 {rival?.user.username ? `@${rival.user.username}` : rival?.user.first_name ?? '—'}
               </span>
             </div>

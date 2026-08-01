@@ -59,7 +59,7 @@ export default function VerifyModal({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-3xl border border-line bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[92vh] max-w-md overflow-y-auto rounded-t-3xl border border-line bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
           >
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-line" />
 
@@ -69,16 +69,16 @@ export default function VerifyModal({
               <span className="ml-auto text-sm text-rival">{item.rivalName}</span>
             </div>
 
-            <div className="relative mb-2 aspect-square w-full overflow-hidden rounded-2xl bg-gradient-to-br from-surface-2 to-bg">
+            <div className="relative mb-2 w-full overflow-hidden rounded-2xl bg-gradient-to-br from-surface-2 to-bg">
               {src && !imgError ? (
                 <img
                   src={src}
                   alt={item.label}
                   onError={() => setImgError(true)}
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="mx-auto block max-h-[55vh] w-full object-contain"
                 />
               ) : (
-                <div className="absolute inset-0 grid place-items-center text-6xl opacity-40">
+                <div className="grid aspect-square w-full place-items-center text-6xl opacity-40">
                   {item.icon}
                 </div>
               )}
