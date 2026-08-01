@@ -20,6 +20,10 @@ echo "▸ Ruxsatlar..."
 chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
 echo "▸ Telegram menyu tugmasi..."
-php artisan battle:set-menu || true
+if php artisan battle:set-menu >/dev/null 2>&1; then
+  echo "  ✓ o'rnatildi"
+else
+  echo "  ⚠ o'tkazib yuborildi (Telegram'ga ulanib bo'lmadi) — keyin qo'lda: php artisan battle:set-menu"
+fi
 
 echo "✅ Deploy tayyor."
