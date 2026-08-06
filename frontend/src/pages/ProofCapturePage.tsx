@@ -219,7 +219,7 @@ export default function ProofCapturePage() {
               )}
               <button
                 type="button"
-                onClick={phase === 'denied' ? startCamera : () => navigate(-1)}
+                onClick={phase === 'denied' ? () => startCamera() : () => navigate(-1)}
                 className="mt-5 rounded-2xl bg-you px-6 py-3 font-semibold text-bg transition active:scale-95"
               >
                 {phase === 'denied' ? t('proof.capture') : t('proof.cancel')}
