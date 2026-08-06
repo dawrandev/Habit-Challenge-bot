@@ -21,7 +21,7 @@
     "ahead": "You're ahead by {{count}} 🔥",
     "behind": "You're behind by {{count}}",
     "tied": "Neck and neck",
-    "missedDays": "{{n}} days missed"
+    "missedTimes": "{{n}} times missed"
   },
   "home": {
     "title": "Your battles",

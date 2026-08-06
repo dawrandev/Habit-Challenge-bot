@@ -75,7 +75,9 @@ function scoreMath(p: PlayerScore | undefined) {
   const done = Object.values(p?.breakdown ?? {}).reduce((s, v) => s + v, 0)
   const penalty = Math.max(0, +(done - (p?.score ?? 0)).toFixed(1))
   const missed = Math.round(penalty * 2)
-  return { done, penalty, missed }
+  // done + missed = jami bajarilishi kerak bo'lgan slotlar (challenge × kun)
+  const total = done + missed
+  return { done, penalty, missed, total }
 }
 
 /* Ball qancha uzun bo'lsa, shuncha kichik — kartadan chiqib ketmasligi uchun */
@@ -273,13 +275,13 @@ export default function BattlePage() {
           <div className="mt-3 flex items-start justify-between border-t border-line/60 pt-3">
             <div className="flex flex-col gap-0.5">
               <span className="tabular font-mono text-sm">
-                <span className="text-you">✓{myStat.done}</span>
+                <span className="text-you">✓{myStat.done}/{myStat.total}</span>
                 {myStat.penalty > 0 && (
                   <span className="ml-2 text-reject">−{fmt(myStat.penalty)}</span>
                 )}
               </span>
               <span className="text-[10px] text-muted">
-                {t('battle.missedDays', { n: myStat.missed })}
+                {t('battle.missedTimes', { n: myStat.missed })}
               </span>
             </div>
             <div className="flex flex-col items-end gap-0.5">
@@ -287,10 +289,10 @@ export default function BattlePage() {
                 {rivalStat.penalty > 0 && (
                   <span className="mr-2 text-reject">−{fmt(rivalStat.penalty)}</span>
                 )}
-                <span className="text-rival">✓{rivalStat.done}</span>
+                <span className="text-rival">✓{rivalStat.done}/{rivalStat.total}</span>
               </span>
               <span className="text-[10px] text-muted">
-                {t('battle.missedDays', { n: rivalStat.missed })}
+                {t('battle.missedTimes', { n: rivalStat.missed })}
               </span>
             </div>
           </div>

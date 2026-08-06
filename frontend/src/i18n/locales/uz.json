@@ -21,7 +21,7 @@
     "ahead": "Sen {{count}} ochko oldindasan 🔥",
     "behind": "Sen {{count}} ochko ortdasan",
     "tied": "Hisob teng",
-    "missedDays": "{{n}} kun o'tkazilgan"
+    "missedTimes": "{{n}} marta o'tkazib yuborilgan"
   },
   "home": {
     "title": "Battle'laring",

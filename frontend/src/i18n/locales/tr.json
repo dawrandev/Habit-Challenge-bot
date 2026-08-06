@@ -21,7 +21,7 @@
     "ahead": "{{count}} önde gidiyorsun 🔥",
     "behind": "{{count}} geridesin",
     "tied": "Skor eşit",
-    "missedDays": "{{n}} gün kaçırıldı"
+    "missedTimes": "{{n}} kez kaçırıldı"
   },
   "home": {
     "title": "Düellolarım",
