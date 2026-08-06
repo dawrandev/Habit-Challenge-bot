@@ -19,6 +19,7 @@ class ChallengeFeatureTest extends TestCase
     use RefreshDatabase;
 
     private const TG_A = 1001; // battle creator / participant A
+
     private const TG_B = 1002; // second participant B
 
     /**

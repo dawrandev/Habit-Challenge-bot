@@ -11,7 +11,6 @@ use App\Models\User;
 use App\Services\Telegram\NotificationService;
 use App\Services\Telegram\PhotoService;
 use App\Support\Clock;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 

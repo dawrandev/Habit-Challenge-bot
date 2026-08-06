@@ -70,6 +70,14 @@ function Avatar({
   )
 }
 
+/* Bajarilgan / jarima / o'tkazilgan kun — mavjud ball va breakdown'dan */
+function scoreMath(p: PlayerScore | undefined) {
+  const done = Object.values(p?.breakdown ?? {}).reduce((s, v) => s + v, 0)
+  const penalty = Math.max(0, +(done - (p?.score ?? 0)).toFixed(1))
+  const missed = Math.round(penalty * 2)
+  return { done, penalty, missed }
+}
+
 /* Ball qancha uzun bo'lsa, shuncha kichik — kartadan chiqib ketmasligi uchun */
 function scoreSizeCls(a: number, b: number) {
   const len = Math.max(fmt(a).length, fmt(b).length)
@@ -169,6 +177,11 @@ export default function BattlePage() {
   const rivalScore = rival?.score ?? 0
   const diff = myScore - rivalScore
   const scoreSize = scoreSizeCls(myScore, rivalScore)
+
+  // Jarima hisobi mavjud ma'lumotdan: bajarilgan = breakdown yig'indisi,
+  // jarima = bajarilgan − sof ball, o'tkazilgan kun = jarima ÷ 0.5
+  const myStat = scoreMath(me)
+  const rivalStat = scoreMath(rival)
   const tl = timeLeft(data.battle.end_date)
 
   const statusText =
@@ -254,6 +267,32 @@ export default function BattlePage() {
           <div className="mt-5">
             <TugOfWar you={myScore} rival={rivalScore} />
             <p className="mt-2 text-center text-xs text-muted">{statusText}</p>
+          </div>
+
+          {/* Jarima hisobi — ixcham, ikki tomon */}
+          <div className="mt-3 flex items-start justify-between border-t border-line/60 pt-3">
+            <div className="flex flex-col gap-0.5">
+              <span className="tabular font-mono text-sm">
+                <span className="text-you">✓{myStat.done}</span>
+                {myStat.penalty > 0 && (
+                  <span className="ml-2 text-reject">−{fmt(myStat.penalty)}</span>
+                )}
+              </span>
+              <span className="text-[10px] text-muted">
+                {t('battle.missedDays', { n: myStat.missed })}
+              </span>
+            </div>
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="tabular font-mono text-sm">
+                {rivalStat.penalty > 0 && (
+                  <span className="mr-2 text-reject">−{fmt(rivalStat.penalty)}</span>
+                )}
+                <span className="text-rival">✓{rivalStat.done}</span>
+              </span>
+              <span className="text-[10px] text-muted">
+                {t('battle.missedDays', { n: rivalStat.missed })}
+              </span>
+            </div>
           </div>
         </div>
       </section>

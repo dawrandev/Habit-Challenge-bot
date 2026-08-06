@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Enums\CompletionStatus;
 use App\Enums\DisputeStatus;
 use App\Models\BattleParticipant;
+use App\Models\Challenge;
 use App\Models\Completion;
 use App\Models\Dispute;
 use App\Models\User;
@@ -74,7 +75,7 @@ class VerificationService
     /**
      * Boshqa ishtirokchilarning tekshiruv kutayotgan pending hisobotlari (Faoliyat).
      *
-     * @return array<int, array{completion: Completion, challenge: \App\Models\Challenge, rival: User}>
+     * @return array<int, array{completion: Completion, challenge: Challenge, rival: User}>
      */
     public function queueFor(User $user): array
     {

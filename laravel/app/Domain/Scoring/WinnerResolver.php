@@ -11,7 +11,7 @@ namespace App\Domain\Scoring;
 final class WinnerResolver
 {
     /**
-     * @return int  1 = A yutdi, -1 = B yutdi, 0 = durang
+     * @return int 1 = A yutdi, -1 = B yutdi, 0 = durang
      */
     public function decide(float $aScore, int $aCompletions, float $bScore, int $bCompletions): int
     {

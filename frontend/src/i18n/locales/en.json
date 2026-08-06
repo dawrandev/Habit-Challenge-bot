@@ -20,7 +20,8 @@
     "todayProof": "Today's proof",
     "ahead": "You're ahead by {{count}} 🔥",
     "behind": "You're behind by {{count}}",
-    "tied": "Neck and neck"
+    "tied": "Neck and neck",
+    "missedDays": "{{n}} days missed"
   },
   "home": {
     "title": "Your battles",

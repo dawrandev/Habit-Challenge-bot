@@ -20,7 +20,8 @@
     "todayProof": "Bugungi isbot",
     "ahead": "Sen {{count}} ochko oldindasan 🔥",
     "behind": "Sen {{count}} ochko ortdasan",
-    "tied": "Hisob teng"
+    "tied": "Hisob teng",
+    "missedDays": "{{n}} kun o'tkazilgan"
   },
   "home": {
     "title": "Battle'laring",

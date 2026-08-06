@@ -11,16 +11,18 @@ use App\Models\BattleParticipant;
 use App\Models\Challenge;
 use App\Models\Completion;
 use App\Models\User;
+use App\Services\Telegram\NotificationService;
 use App\Support\Clock;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class BattleService
 {
     public function __construct(
         private readonly ScoringService $scoring,
         private readonly BattleAccess $access,
-        private readonly \App\Services\Telegram\NotificationService $notifications,
+        private readonly NotificationService $notifications,
     ) {}
 
     /**
@@ -102,12 +104,12 @@ class BattleService
     public function acceptChallenge(User $user, Battle $battle, int $challengeId): Challenge
     {
         if (! $this->access->isParticipant($battle->id, $user->id)) {
-            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException("Ruxsat yo'q");
+            throw new AccessDeniedHttpException("Ruxsat yo'q");
         }
 
         $challenge = $battle->challenges()->where('pending', true)->findOrFail($challengeId);
         if ($challenge->proposed_by === $user->id) {
-            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException(
+            throw new AccessDeniedHttpException(
                 "O'z taklifingni qabul qila olmaysan",
             );
         }
@@ -142,12 +144,12 @@ class BattleService
     public function rejectChallenge(User $user, Battle $battle, int $challengeId): void
     {
         if (! $this->access->isParticipant($battle->id, $user->id)) {
-            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException("Ruxsat yo'q");
+            throw new AccessDeniedHttpException("Ruxsat yo'q");
         }
 
         $challenge = $battle->challenges()->where('pending', true)->findOrFail($challengeId);
         if ($challenge->proposed_by === $user->id) {
-            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException("Ruxsat yo'q");
+            throw new AccessDeniedHttpException("Ruxsat yo'q");
         }
 
         $proposer = User::find($challenge->proposed_by);
@@ -192,8 +194,8 @@ class BattleService
     public function updateBattle(User $user, Battle $battle, string $title): Battle
     {
         if ($battle->created_by !== $user->id) {
-            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException(
-                "Faqat yaratuvchi tahrirlay oladi",
+            throw new AccessDeniedHttpException(
+                'Faqat yaratuvchi tahrirlay oladi',
             );
         }
 
@@ -210,7 +212,7 @@ class BattleService
     public function updateChallenge(User $user, Battle $battle, int $challengeId, array $data): Challenge
     {
         if (! $this->access->isParticipant($battle->id, $user->id)) {
-            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException("Ruxsat yo'q");
+            throw new AccessDeniedHttpException("Ruxsat yo'q");
         }
 
         $challenge = $battle->challenges()->findOrFail($challengeId);
@@ -234,7 +236,7 @@ class BattleService
     public function deleteBattle(User $user, Battle $battle): void
     {
         if ($battle->created_by !== $user->id) {
-            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException(
+            throw new AccessDeniedHttpException(
                 "Faqat yaratuvchi o'chira oladi",
             );
         }
@@ -248,7 +250,7 @@ class BattleService
     public function deleteChallenge(User $user, Battle $battle, int $challengeId): void
     {
         if (! $this->access->isParticipant($battle->id, $user->id)) {
-            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException("Ruxsat yo'q");
+            throw new AccessDeniedHttpException("Ruxsat yo'q");
         }
 
         $battle->challenges()->findOrFail($challengeId)->delete();

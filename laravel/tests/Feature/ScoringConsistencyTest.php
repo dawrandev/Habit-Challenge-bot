@@ -18,6 +18,7 @@ class ScoringConsistencyTest extends TestCase
     use RefreshDatabase;
 
     private const TG_A = 3001; // creator
+
     private const TG_B = 3002; // completing user
 
     private function asTg(int $telegramId): self

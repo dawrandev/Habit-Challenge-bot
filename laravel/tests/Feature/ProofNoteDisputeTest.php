@@ -21,7 +21,9 @@ class ProofNoteDisputeTest extends TestCase
     use RefreshDatabase;
 
     private const TG_A = 2001; // creator / verifier
+
     private const TG_B = 2002; // participant (completion owner)
+
     private const TG_C = 2003; // outsider / non-owner
 
     private function asTg(int $telegramId): self

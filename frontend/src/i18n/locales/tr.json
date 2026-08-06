@@ -20,7 +20,8 @@
     "todayProof": "Bugünkü kanıt",
     "ahead": "{{count}} önde gidiyorsun 🔥",
     "behind": "{{count}} geridesin",
-    "tied": "Skor eşit"
+    "tied": "Skor eşit",
+    "missedDays": "{{n}} gün kaçırıldı"
   },
   "home": {
     "title": "Düellolarım",
