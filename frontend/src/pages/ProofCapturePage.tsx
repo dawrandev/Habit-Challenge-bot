@@ -31,12 +31,14 @@ export default function ProofCapturePage() {
   const [phase, setPhase] = useState<Phase>('loading')
   const [shot, setShot] = useState<string | null>(null)
   const [note, setNote] = useState('')
+  const [facing, setFacing] = useState<'environment' | 'user'>('environment')
 
-  async function startCamera() {
+  async function startCamera(mode: 'environment' | 'user' = facing) {
     setPhase('loading')
+    stopCamera()
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+        video: { facingMode: mode },
         audio: false,
       })
       streamRef.current = stream
@@ -49,6 +51,12 @@ export default function ProofCapturePage() {
       const name = (err as DOMException)?.name
       setPhase(name === 'NotFoundError' || name === 'OverconstrainedError' ? 'nocamera' : 'denied')
     }
+  }
+
+  function flipCamera() {
+    const next = facing === 'environment' ? 'user' : 'environment'
+    setFacing(next)
+    startCamera(next)
   }
 
   function stopCamera() {
@@ -138,7 +146,18 @@ export default function ProofCapturePage() {
           ✕
         </button>
         <span className="font-display text-lg text-text">{t('proof.title')}</span>
-        <span className="w-9" />
+        {!isScreenshot && (phase === 'ready' || phase === 'loading') ? (
+          <button
+            type="button"
+            onClick={flipCamera}
+            className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-lg text-text transition active:scale-90"
+            aria-label={t('proof.flip')}
+          >
+            🔄
+          </button>
+        ) : (
+          <span className="w-9" />
+        )}
       </div>
 
       {/* Kamera / skrinshot / preview */}
@@ -148,7 +167,7 @@ export default function ProofCapturePage() {
             ref={videoRef}
             playsInline
             muted
-            className={`h-full w-full object-cover ${phase === 'captured' || phase === 'sending' || phase === 'sent' ? 'hidden' : ''}`}
+            className={`h-full w-full object-cover ${facing === 'user' ? '-scale-x-100' : ''} ${phase === 'captured' || phase === 'sending' || phase === 'sent' ? 'hidden' : ''}`}
           />
         )}
         {shot && (phase === 'captured' || phase === 'sending' || phase === 'sent') && (

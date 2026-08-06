@@ -56,7 +56,8 @@
     "permissionTitle": "Kamera izni gerekli",
     "permissionBody": "Kanıt yalnızca canlı kamerayla alınır. Tarayıcı ayarlarından kamera iznini ver.",
     "noCamera": "Cihazında kamera bulunamadı.",
-    "cancel": "İptal"
+    "cancel": "İptal",
+    "flip": "Kamerayı çevir"
   },
   "verify": {
     "title": "Doğrula",

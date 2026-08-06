@@ -56,7 +56,8 @@
     "permissionTitle": "Camera access needed",
     "permissionBody": "Proof is captured only with the live camera. Allow camera access in your browser settings.",
     "noCamera": "No camera found on your device.",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "flip": "Flip camera"
   },
   "verify": {
     "title": "Verify",
