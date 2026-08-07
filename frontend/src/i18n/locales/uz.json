@@ -57,7 +57,8 @@
     "permissionBody": "Isbot faqat jonli kamera bilan olinadi. Brauzer sozlamalaridan kameraga ruxsat ber.",
     "noCamera": "Qurilmangda kamera topilmadi.",
     "cancel": "Bekor",
-    "flip": "Kamerani almashtirish"
+    "flip": "Kamerani almashtirish",
+    "torch": "Fonarik"
   },
   "verify": {
     "title": "Tekshirish",

@@ -32,10 +32,14 @@ export default function ProofCapturePage() {
   const [shot, setShot] = useState<string | null>(null)
   const [note, setNote] = useState('')
   const [facing, setFacing] = useState<'environment' | 'user'>('environment')
+  const [torchOn, setTorchOn] = useState(false)
+  const [torchSupported, setTorchSupported] = useState(false)
 
   async function startCamera(mode: 'environment' | 'user' = facing) {
     setPhase('loading')
     stopCamera()
+    setTorchOn(false)
+    setTorchSupported(false)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: mode },
@@ -46,6 +50,10 @@ export default function ProofCapturePage() {
         videoRef.current.srcObject = stream
         await videoRef.current.play().catch(() => {})
       }
+      // Fonarik faqat qo'llab-quvvatlansa (odatda orqa kamera)
+      const track = stream.getVideoTracks()[0]
+      const caps = (track?.getCapabilities?.() as { torch?: boolean }) ?? {}
+      setTorchSupported(!!caps.torch)
       setPhase('ready')
     } catch (err) {
       const name = (err as DOMException)?.name
@@ -57,6 +65,18 @@ export default function ProofCapturePage() {
     const next = facing === 'environment' ? 'user' : 'environment'
     setFacing(next)
     startCamera(next)
+  }
+
+  async function toggleTorch() {
+    const track = streamRef.current?.getVideoTracks()[0]
+    if (!track) return
+    const next = !torchOn
+    try {
+      await track.applyConstraints({ advanced: [{ torch: next }] } as MediaTrackConstraints)
+      setTorchOn(next)
+    } catch {
+      // qurilma qo'llab-quvvatlamadi
+    }
   }
 
   function stopCamera() {
@@ -146,18 +166,7 @@ export default function ProofCapturePage() {
           ✕
         </button>
         <span className="font-display text-lg text-text">{t('proof.title')}</span>
-        {!isScreenshot && (phase === 'ready' || phase === 'loading') ? (
-          <button
-            type="button"
-            onClick={flipCamera}
-            className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-lg text-text transition active:scale-90"
-            aria-label={t('proof.flip')}
-          >
-            🔄
-          </button>
-        ) : (
-          <span className="w-9" />
-        )}
+        <span className="w-9" />
       </div>
 
       {/* Kamera / skrinshot / preview */}
@@ -251,15 +260,41 @@ export default function ProofCapturePage() {
       {/* Boshqaruv */}
       <div className="px-8 pt-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         {phase === 'ready' && (
-          <div className="flex justify-center">
+          <div className="flex items-center justify-between px-2">
+            {/* Fonarik (chap) */}
+            <button
+              type="button"
+              onClick={toggleTorch}
+              disabled={!torchSupported}
+              aria-label={t('proof.torch')}
+              aria-pressed={torchOn}
+              className={`grid h-12 w-12 place-items-center rounded-full border text-xl backdrop-blur-md transition active:scale-90 ${
+                torchOn
+                  ? 'border-you/70 bg-you text-bg shadow-[0_0_20px_rgba(246,176,30,0.55)]'
+                  : 'border-white/20 bg-white/10 text-white'
+              } ${torchSupported ? '' : 'pointer-events-none opacity-30'}`}
+            >
+              {torchOn ? '🔦' : '⚡'}
+            </button>
+
+            {/* Shutter (markaz) */}
             <button
               type="button"
               onClick={capture}
               aria-label={t('proof.capture')}
-              className="grid place-items-center rounded-full ring-4 ring-white/80 transition active:scale-90"
-              style={{ width: 72, height: 72 }}
+              className="grid h-[74px] w-[74px] place-items-center rounded-full ring-4 ring-white/85 transition active:scale-90"
             >
-              <span className="h-14 w-14 rounded-full bg-white" />
+              <span className="h-[58px] w-[58px] rounded-full bg-white transition group-active:scale-90" />
+            </button>
+
+            {/* Kamera almashtirish (o'ng) */}
+            <button
+              type="button"
+              onClick={flipCamera}
+              aria-label={t('proof.flip')}
+              className="grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/10 text-xl text-white backdrop-blur-md transition active:scale-90 active:rotate-180"
+            >
+              🔄
             </button>
           </div>
         )}

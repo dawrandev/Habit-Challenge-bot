@@ -57,7 +57,8 @@
     "permissionBody": "Proof is captured only with the live camera. Allow camera access in your browser settings.",
     "noCamera": "No camera found on your device.",
     "cancel": "Cancel",
-    "flip": "Flip camera"
+    "flip": "Flip camera",
+    "torch": "Flashlight"
   },
   "verify": {
     "title": "Verify",

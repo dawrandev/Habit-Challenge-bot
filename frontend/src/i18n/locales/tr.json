@@ -57,7 +57,8 @@
     "permissionBody": "Kanıt yalnızca canlı kamerayla alınır. Tarayıcı ayarlarından kamera iznini ver.",
     "noCamera": "Cihazında kamera bulunamadı.",
     "cancel": "İptal",
-    "flip": "Kamerayı çevir"
+    "flip": "Kamerayı çevir",
+    "torch": "Fener"
   },
   "verify": {
     "title": "Doğrula",
