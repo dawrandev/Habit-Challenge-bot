@@ -52,7 +52,7 @@ export default function ProofCapturePage() {
       }
       // Fonarik faqat qo'llab-quvvatlansa (odatda orqa kamera)
       const track = stream.getVideoTracks()[0]
-      const caps = (track?.getCapabilities?.() as { torch?: boolean }) ?? {}
+      const caps = (track?.getCapabilities?.() as unknown as { torch?: boolean }) ?? {}
       setTorchSupported(!!caps.torch)
       setPhase('ready')
     } catch (err) {
@@ -72,7 +72,10 @@ export default function ProofCapturePage() {
     if (!track) return
     const next = !torchOn
     try {
-      await track.applyConstraints({ advanced: [{ torch: next }] } as MediaTrackConstraints)
+      // `torch` standart TS tiplarida yo'q — unknown orqali beramiz
+      await track.applyConstraints({
+        advanced: [{ torch: next }],
+      } as unknown as MediaTrackConstraints)
       setTorchOn(next)
     } catch {
       // qurilma qo'llab-quvvatlamadi
