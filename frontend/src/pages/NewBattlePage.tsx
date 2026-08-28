@@ -36,16 +36,29 @@ export default function NewBattlePage() {
     )
   }
 
+  function makeCustom(name: string): ChallengeInput {
+    return {
+      template_key: null,
+      name,
+      icon: customIcon,
+      cadence: 'daily',
+      weekdays: [],
+    }
+  }
+
   function addCustom() {
     const name = custom.trim()
     if (!name) return
-    setItems((cur) => [
-      ...cur,
-      { template_key: null, name, icon: customIcon, cadence: 'daily', weekdays: [] },
-    ])
+    setItems((cur) => [...cur, makeCustom(name)])
     setCustom('')
     setCustomIcon('📖')
   }
+
+  /**
+   * Yozilgan-u hali qo'shilmagan matn ham hisobga olinadi — aks holda
+   * foydalanuvchi nom yozib "Yaratish"ni bosadi va tugma jim o'chiq turadi.
+   */
+  const allItems = custom.trim() ? [...items, makeCustom(custom.trim())] : items
 
   function setCadence(idx: number, cadence: 'daily' | 'weekly_days') {
     setItems((cur) =>
@@ -75,13 +88,13 @@ export default function NewBattlePage() {
   }
 
   function submit() {
-    if (!items.length) return
+    if (!allItems.length) return
     create.mutate(
       {
         title: title.trim() || t('create.title'),
         period_days: period,
         start_tomorrow: startTomorrow,
-        challenges: items,
+        challenges: allItems,
       },
       { onSuccess: (r) => setToken(r.invite_token) },
     )
@@ -253,9 +266,12 @@ export default function NewBattlePage() {
             <button
               type="button"
               onClick={addCustom}
-              className="rounded-2xl border border-line bg-surface px-4 text-xl text-you"
+              disabled={!custom.trim()}
+              aria-label={t('questCreate.addHabit')}
+              className="flex items-center gap-1 rounded-2xl border border-you/40 bg-you/10 px-3 text-you transition active:scale-95 disabled:border-line disabled:bg-surface disabled:opacity-50"
             >
-              {customIcon}
+              <span className="text-lg">{customIcon}</span>
+              <span className="text-lg leading-none">＋</span>
             </button>
           </div>
         </div>
@@ -335,12 +351,12 @@ export default function NewBattlePage() {
         <button
           type="button"
           onClick={submit}
-          disabled={!items.length || create.isPending}
+          disabled={!allItems.length || create.isPending}
           className="w-full rounded-2xl bg-you py-4 font-display text-lg text-bg shadow-[0_8px_30px_rgba(246,176,30,0.35)] transition active:scale-[0.98] disabled:opacity-50"
         >
           {create.isPending ? '…' : t('create.create')}
         </button>
-        {!items.length && (
+        {!allItems.length && (
           <p className="text-center text-xs text-muted">
             {t('create.needChallenge')}
           </p>

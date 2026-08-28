@@ -230,7 +230,8 @@
     "createdTitle": "Görev başladı! 🎯",
     "createdBody": "Şimdi bir tanık davet et — kanıtlarını o doğrulayacak:",
     "later": "Sonra",
-    "needHabit": "En az 1 alışkanlık seç"
+    "needHabit": "En az 1 alışkanlık seç",
+    "addHabit": "Alışkanlık ekle"
   },
   "questInvite": {
     "title": "Tanıklık daveti",

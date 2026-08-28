@@ -230,7 +230,8 @@
     "createdTitle": "Quest started! 🎯",
     "createdBody": "Now invite a witness — they will verify your proofs:",
     "later": "Later",
-    "needHabit": "Pick at least 1 habit"
+    "needHabit": "Pick at least 1 habit",
+    "addHabit": "Add habit"
   },
   "questInvite": {
     "title": "Witness request",
