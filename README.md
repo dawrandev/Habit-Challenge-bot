@@ -1,8 +1,20 @@
-# Battle Bot ⚔️
+# Battle Bot ⚔️🎯
 
-Odatlarni **bellashuv** tarzida shakllantiruvchi Telegram Mini App. Do'stlar bir-biriga
-odat-challenge yuboradi, har kuni **jonli kamera** bilan isbot yuboradi, **bir-birini tekshiradi**,
-davr oxirida yig'ilgan ballardan g'olib chiqadi.
+Odatni **boshqa odam oldida javobgarlik** bilan shakllantiruvchi Telegram Mini App.
+Har kuni **jonli kamera** bilan isbot yuboriladi va uni **inson tekshiradi**.
+
+Ikki rejim bor:
+
+| | ⚔️ **Duel** | 🎯 **Missiya** |
+|---|---|---|
+| Munosabat | 2 raqib, **simmetrik** | 1 **bajaruvchi** + 1 **guvoh**, asimmetrik |
+| Odat kimniki | ikkalasiniki | **faqat bajaruvchiniki** |
+| Kim tekshiradi | bir-birini | **faqat guvoh** |
+| Natija | ballar bo'yicha g'olib | **maqsad foiziga** yetildimi |
+| Qachon kerak | bir xil odatni birga tashlaganda | odat faqat **senga** kerak bo'lganda |
+
+> Missiya nega bor: bir odamga kerak bo'lgan odat ikkinchisiga kerak bo'lmasligi mumkin.
+> Unda do'st raqib emas — **guvoh** bo'ladi: o'zi bajarmaydi, faqat isbotingni tekshiradi.
 
 To'liq spetsifikatsiya: [`SPEC.md`](./SPEC.md).
 
@@ -10,86 +22,121 @@ To'liq spetsifikatsiya: [`SPEC.md`](./SPEC.md).
 
 | Qatlam | Tanlov |
 |--------|--------|
-| Frontend | React + Vite + TypeScript + Tailwind v4 + motion + i18next (Telegram Mini App) |
-| Backend + Bot | Python: FastAPI + aiogram (bitta xizmat, polling) |
-| DB | PostgreSQL (prod) / SQLite (dev) |
+| Frontend | React 19 + Vite + TypeScript + Tailwind v4 + motion + i18next (Telegram Mini App) |
+| Backend + Bot | **PHP: Laravel 12** (API + Telegram webhook, bitta xizmat) |
+| DB | MySQL (prod) / SQLite (dev) |
 | Rasm | Telegram serveri (`file_id`) + backend proxy |
+| Chartlar | Inline SVG (kutubxonasiz) — halqa, tracker heatmap, trend, barlar |
 | Dizayn | "Arena" — dual-rang tug-of-war, olov animatsiyalari |
 | Tillar | 🇺🇿 🇬🇧 🇷🇺 🇹🇷 |
+
+> ℹ️ `backend/` papkasi — **eski Python (FastAPI+aiogram) prototipi**, 2026-07-25 dan beri
+> ishlatilmaydi. Faol backend — `laravel/`.
 
 ## Loyiha tuzilmasi
 
 ```
-battle bot/
+Habit-Challenge-bot/
 ├── SPEC.md              # yagona manba spetsifikatsiya
-├── frontend/            # React Mini App
+├── frontend/            # React Mini App (build → laravel/public)
 │   └── src/
-│       ├── pages/       # Home, Battle, Activity, Chat, Profile, ProofCapture
-│       ├── components/  # BottomNav, VerifyModal, PageTransition
+│       ├── pages/       # Home, Battle, Quest, Activity, Chat, Profile, ProofCapture
+│       ├── components/
+│       │   └── charts/  # ProgressRing, TrackerGrid, StreakChain, TrendChart, ChallengeBars
 │       ├── i18n/        # 4 til locale
-│       └── lib/         # demo data (keyin API)
-└── backend/             # FastAPI + aiogram
-    └── app/
-        ├── models.py    # SQLModel (users, battles, challenges, completions...)
-        ├── scoring.py   # scoring engine (+ o'z-o'zini test)
-        ├── scheduler.py # kunlik yopish + auto-tasdiq
-        ├── auth.py      # Telegram initData verify
-        ├── api/routes.py
-        └── bot/bot.py   # /start, deep-link, rasm saqlash/proxy
+│       └── lib/         # api.ts (duel) · quests.ts (missiya)
+├── laravel/             # FAOL backend
+│   └── app/
+│       ├── Contracts/ProofContext.php     # duel/missiya umumiy isbot kontrakti
+│       ├── Domain/Scoring/                # duel ball dvigateli (sof)
+│       ├── Domain/Quest/                  # missiya statistika dvigateli (sof)
+│       ├── Models/                        # Battle, Quest, Challenge, Completion...
+│       ├── Services/                      # BattleService, QuestService, Verification...
+│       └── Http/Controllers/Api/
+└── backend/             # ⚠️ eski Python prototipi (ishlatilmaydi)
 ```
 
+
 ## Ishga tushirish (dev)
+
+### Backend (Laravel)
+```bash
+cd laravel
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate            # DB_CONNECTION=sqlite bo'lsa — fayl o'zi yaratiladi
+php artisan serve --port=8000
+```
+
+- `TELEGRAM_BOT_TOKEN` bo'sh bo'lsa — dev rejim: API `X-Dev-Telegram-Id: <id>` header bilan sinaladi.
+- Testlar: `php artisan test` · Kod uslubi: `./vendor/bin/pint`
 
 ### Frontend
 ```bash
 cd frontend
 npm install
-npm run dev        # http://localhost:5173
+npm run dev        # http://localhost:5173 — /api → :8000 ga proxy
 ```
 
-### Backend
-```bash
-cd backend
-python -m venv venv
-venv\Scripts\activate            # Windows (yoki: source venv/bin/activate)
-pip install -r requirements.txt
-copy .env.example .env           # va BOT_TOKEN, STORAGE_CHAT_ID to'ldir
-python -m uvicorn app.main:app --reload --port 8000
-```
+Telegram tashqarisida (oddiy brauzerda) frontend `X-Dev-Telegram-Id: 111` yuboradi,
+shuning uchun ilova to'g'ridan-to'g'ri ochiladi.
 
-- `BOT_TOKEN` bo'lmasa — bot ishga tushmaydi (dev rejim), API `X-Dev-Telegram-Id` header bilan sinaladi.
-- Scoring testi: `python -m app.scoring`
+## Deploy
 
-## Deploy (SPEC §1)
-
-Ilova **bitta xizmat** sifatida deploy qilinadi: FastAPI ham API'ni, ham frontend (SPA)'ni beradi
-(`FRONTEND_DIST` orqali). Bu Telegram Mini App uchun ideal — bitta HTTPS origin, CORS muammosi yo'q.
+Ilova **bitta xizmat**: Laravel ham API'ni (`/api/*`), ham frontend SPA'ni (`public/index.html`)
+beradi. Bitta HTTPS origin — Telegram Mini App uchun ideal, CORS muammosi yo'q.
 
 ### 1. Telegram tayyorlash (BotFather)
-1. [@BotFather](https://t.me/BotFather) → `/newbot` → **BOT_TOKEN** ol.
-2. Rasm saqlash uchun **maxsus kanal** yarat (private), botni **admin** qil, **STORAGE_CHAT_ID** ol
-   (kanal ID, masalan `-1001234567890`).
-3. Deploy'dan keyin BotFather → `/newapp` (yoki bot sozlamalari) → **Mini App URL** = deploy HTTPS URL.
+1. [@BotFather](https://t.me/BotFather) → `/newbot` → **TELEGRAM_BOT_TOKEN** ol.
+2. Rasm saqlash uchun **private kanal** yarat, botni **admin** qil, **TELEGRAM_STORAGE_CHAT_ID** ol
+   (masalan `-1001234567890`).
+3. Deploy'dan keyin: `php artisan battle:set-webhook` va `php artisan battle:set-menu`.
 
-### 2. Docker bilan (bir buyruq)
+### 2. Frontend'ni build qilish (lokalda, deploy'dan oldin)
 ```bash
-docker build --build-arg VITE_BOT_USERNAME=YourBot -t battlebot .
-docker run -p 8000:8000 --env-file backend/.env battlebot
+cd frontend
+VITE_BOT_USERNAME=YourBot npm run build
+cp -r dist/assets/* ../laravel/public/assets/
+cp dist/index.html ../laravel/public/index.html
+```
+Build natijasi repo'ga commit qilinadi — serverda `npm` kerak emas.
+
+### 3. Serverda
+```bash
+cd laravel
+bash deploy.sh     # git pull · composer install · migrate --force · kesh · menyu tugmasi
 ```
 
-### 3. Railway / Render (tavsiya)
-- Repo'ni ula → Docker aniqlanadi (root `Dockerfile`).
-- **Env:** `BOT_TOKEN`, `STORAGE_CHAT_ID`, `DATABASE_URL` (Postgres — Neon/Railway),
-  `WEBAPP_URL` (deploy URL), `TIMEZONE=Asia/Tashkent`.
-- **Build arg:** `VITE_BOT_USERNAME` (taklif havolasi uchun).
-- Bepul HTTPS subdomen beriladi → shu URL'ni BotFather'ga Mini App sifatida qo'y.
+`deploy.sh` **`migrate --force`** ishlatadi (`migrate:fresh` EMAS) — mavjud ma'lumot saqlanadi.
 
-Bot **polling**'da ishlaydi (webhook/domain shart emas), lekin **Mini App uchun HTTPS URL shart**.
+**Kerakli env:**
+```
+APP_ENV=production
+APP_DEBUG=false
+DB_CONNECTION=mysql            # DB_HOST / DB_DATABASE / DB_USERNAME / DB_PASSWORD
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_BOT_USERNAME=YourBot
+TELEGRAM_STORAGE_CHAT_ID=-100...
+TELEGRAM_WEBHOOK_SECRET=<tasodifiy satr>
+TELEGRAM_WEBAPP_URL=https://sizning-domeningiz
+TELEGRAM_ALLOW_DEV_AUTH=false  # ⚠️ PROD'DA ALBATTA false
+BATTLE_TIMEZONE=Asia/Tashkent
+```
+
+### 4. Cron (kunlik yopish shart)
+Ballar, o'tkazib yuborilgan kunlar va missiya natijasi shu yerda hisoblanadi:
+```
+* * * * * cd /path/to/laravel && php artisan schedule:run >> /dev/null 2>&1
+```
+- `battle:close-day` — har kuni 00:05 (Toshkent): duel g'olibi + missiya natijasi
+- `battle:auto-approve` — har soatda: 24s tekshirilmagan isbotlarni avtomatik tasdiqlash
 
 ## Holat
 
-**Tayyor:** Arena dizayn + 5 sahifa + i18n + jonli kamera + animatsiyalar; backend modellar,
-scoring (testlar o'tgan), auth, bot skelet, scheduler, rasm proxy.
+**Tayyor:** ⚔️ Duel (ball, tug-of-war, g'olib) · 🎯 Missiya (guvoh, maqsad foizi, 5 chart) ·
+jonli kamera isbot · inson tekshiruvi + 24s auto-tasdiq · nizo · chat · deep-link taklif ·
+4 til · Arena dizayn.
 
-**Keyingi:** completion/verify/dispute/chat endpointlari · frontend↔backend ulanish (React Query) ·
-real bot token + storage kanal + deploy.
+**Keyingi:** eslatmalar (SPEC §7 — 20:00/22:00, tinch soatlar) · duel natija ekrani + arxiv +
+rematch · quit=forfeit · bot xabarlarining i18n'i (hozir qattiq kodlangan o'zbekcha).

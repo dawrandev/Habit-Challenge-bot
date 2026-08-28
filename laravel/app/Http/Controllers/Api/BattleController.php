@@ -47,14 +47,28 @@ class BattleController extends Controller
         return ['ok' => true, 'battle_id' => $battle->id];
     }
 
-    public function show(Request $request, Battle $battle)
+    public function show(Request $request, Battle $battle, BattleAccess $access)
     {
+        $this->assertParticipant($access, $battle, $request);
+
         return $this->battles->detail($battle, $request->user());
     }
 
-    public function today(Request $request, Battle $battle)
+    public function today(Request $request, Battle $battle, BattleAccess $access)
     {
+        $this->assertParticipant($access, $battle, $request);
+
         return $this->battles->todayTasks($battle, $request->user());
+    }
+
+    /**
+     * Begona duelning hisobi/challenge'lari ID orqali o'qilmasin.
+     */
+    private function assertParticipant(BattleAccess $access, Battle $battle, Request $request): void
+    {
+        if (! $access->isParticipant($battle->id, $request->user()->id)) {
+            throw new AccessDeniedHttpException("Ruxsat yo'q");
+        }
     }
 
     public function addChallenge(AddChallengeRequest $request, Battle $battle, BattleAccess $access)

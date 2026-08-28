@@ -4,7 +4,8 @@
     "battle": "Düello",
     "activity": "Etkinlik",
     "chat": "Sohbet",
-    "profile": "Profil"
+    "profile": "Profil",
+    "quests": "Görevler"
   },
   "common": {
     "you": "Sen"
@@ -26,13 +27,22 @@
   "home": {
     "title": "Düellolarım",
     "new": "Yeni düello",
-    "empty": "Henüz aktif düello yok. Bir arkadaşına meydan oku!"
+    "empty": "Henüz aktif düello yok. Bir arkadaşına meydan oku!",
+    "battles": "Düellolar",
+    "quests": "Görevler",
+    "createWhat": "Ne oluşturalım?",
+    "createBattle": "Düello",
+    "createBattleHint": "Arkadaşınla yarış — ikiniz de yaparsınız",
+    "createQuest": "Görev",
+    "createQuestHint": "Sen yaparsın, arkadaşın doğrular"
   },
   "activity": {
     "title": "Etkinlik",
     "empty": "Şu an yapılacak bir şey yok.",
     "toVerify": "Kontrolünü bekliyor",
-    "yourReports": "Raporların"
+    "yourReports": "Raporların",
+    "ctxBattle": "Düello",
+    "ctxQuest": "Görev"
   },
   "chat": {
     "title": "Sohbetler",
@@ -144,5 +154,92 @@
     "read": "Okuma",
     "sport": "Spor",
     "earlyRise": "Erken kalkma"
+  },
+  "quest": {
+    "title": "Görevler",
+    "one": "Görev",
+    "new": "Yeni görev",
+    "empty": "Henüz görev yok. Kendine bir hedef koy, arkadaşın tanık olsun!",
+    "tagline": "Sen yaparsın — arkadaşın doğrular",
+    "owner": "Yapan",
+    "witness": "Tanık",
+    "roleOwner": "Yapan sensin",
+    "roleWitness": "Tanık sensin",
+    "noWitness": "Henüz tanık yok",
+    "inviteWitness": "Tanık davet et",
+    "inviteBody": "Bu bağlantıyı arkadaşına gönder — kanıtlarını o doğrulayacak:",
+    "witnessHint": "Tanığın bu alışkanlıkları yapması gerekmez — sadece doğrular.",
+    "goal": "Hedef",
+    "goalShort": "hedef {{goal}}%",
+    "rate": "Tamamlama",
+    "tracker": "Takip",
+    "trend": "Gidişat",
+    "byChallenge": "Alışkanlığa göre",
+    "expectedToday": "Bugün senden beklenen",
+    "witnessWaiting": "Kanıtını doğrula",
+    "daysUnit": "gün",
+    "streak": "Seri",
+    "streakNow": "{{n}} gün üst üste",
+    "longestStreak": "En uzun seri: {{n}} gün",
+    "streakBroken": "Seri koptu — bugünden yeniden başla",
+    "tapCell": "Ayrıntı için bir kareye dokun",
+    "tapPoint": "Bir noktaya dokun",
+    "tableView": "Tablo",
+    "thChallenge": "Alışkanlık",
+    "notEnoughData": "Grafik için henüz yeterli veri yok",
+    "nowRate": "şu an {{rate}}%",
+    "a11yRing": "Tamamlama yüzde {{rate}}, hedef yüzde {{goal}}",
+    "a11yTrend": "Tamamlama gidişatı, şu an yüzde {{rate}}",
+    "state": {
+      "done": "Yapıldı",
+      "partial": "Kısmen",
+      "missed": "Kaçırıldı",
+      "pending": "Bekliyor",
+      "rest": "Dinlenme",
+      "future": "Gelecek"
+    },
+    "unreachable": "Hedefe artık ulaşılamaz — yine de devam et",
+    "onTrack": "Hedef ulaşılabilir",
+    "ceiling": "En fazla {{rate}}%",
+    "statDone": "Yapıldı",
+    "statMissed": "Kaçırıldı",
+    "statLeft": "Kalan",
+    "achieved": "Hedefe ulaştın! 🏆",
+    "missedGoal": "Hedefe ulaşılamadı",
+    "finished": "Tamamlandı",
+    "abandoned": "Durduruldu",
+    "abandon": "Görevi durdur",
+    "confirmAbandon": "Görevi durdurmak istiyor musun? İstatistikler kalır.",
+    "del": "Görevi sil",
+    "confirmDelete": "Tüm görev silinsin mi? Bu geri alınamaz.",
+    "settings": "Görev ayarları"
+  },
+  "questCreate": {
+    "title": "Yeni görev",
+    "name": "Görev adı",
+    "namePlaceholder": "örn: 30 günlük koşu",
+    "period": "Süre",
+    "d7": "7 gün",
+    "d14": "14 gün",
+    "d30": "30 gün",
+    "d60": "60 gün",
+    "goal": "Hedef — günlerin ne kadarı",
+    "goalHint": "Süre sonunda bu orana ulaşırsan görev başarılı",
+    "chooseHabits": "Alışkanlıklarını seç",
+    "create": "Görevi başlat",
+    "createdTitle": "Görev başladı! 🎯",
+    "createdBody": "Şimdi bir tanık davet et — kanıtlarını o doğrulayacak:",
+    "later": "Sonra",
+    "needHabit": "En az 1 alışkanlık seç"
+  },
+  "questInvite": {
+    "title": "Tanıklık daveti",
+    "by": "senden tanık olmanı istiyor",
+    "explain": "Bu alışkanlıkları sen yapmayacaksın. Sadece günlük kanıtına bakıp ✓ ya da ✕ vereceksin.",
+    "accept": "Tanık olurum",
+    "decline": "Reddet",
+    "taken": "Bu görevin zaten bir tanığı var",
+    "isOwner": "Bu senin kendi görevin",
+    "notFound": "Davet bulunamadı"
   }
 }

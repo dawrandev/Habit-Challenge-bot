@@ -20,7 +20,6 @@ class DisputeService
 {
     public function __construct(
         private readonly NotificationService $notifications,
-        private readonly BattleAccess $access,
     ) {}
 
     public function open(User $user, int $completionId): Completion
@@ -36,10 +35,18 @@ class DisputeService
         }
 
         $completion->disputes()->create(['opened_by' => $user->id]);
-        $completion->update(['status' => CompletionStatus::Pending, 'resolved_at' => null]);
+
+        // Qayta ko'rish uchun ochamiz. `submitted_at` ham yangilanadi — aks holda
+        // soatlik auto-tasdiq cron'i nizoni tekshiruvchi ko'rmasidan yopib qo'yardi
+        // (24s hisobi original yuborishdan sanalardi).
+        $completion->update([
+            'status' => CompletionStatus::Pending,
+            'resolved_at' => null,
+            'submitted_at' => now(),
+        ]);
 
         $this->notifications->notify(
-            $this->access->otherTelegramIds($completion->challenge->battle_id, $user->id),
+            $completion->challenge->context()->memberTelegramIds($user->id),
             "⚑ {$user->first_name} qaroringga nizo ochdi — qayta ko'rib chiq",
         );
 

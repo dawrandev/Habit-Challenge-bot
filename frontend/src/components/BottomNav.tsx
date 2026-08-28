@@ -2,9 +2,13 @@ import { NavLink } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 
+/*
+ * Ilgari 2-tab qattiq `/battle/1` ga ketardi — har foydalanuvchini 1-duelga
+ * olib borardi (ko'pchilikda u yo'q yoki begona). O'rniga Missiya bo'limi.
+ */
 const tabs = [
   { to: '/', icon: '🏠', key: 'home' },
-  { to: '/battle/1', icon: '⚔️', key: 'battle' },
+  { to: '/quests', icon: '🎯', key: 'quests' },
   { to: '/activity', icon: '🔔', key: 'activity' },
   { to: '/chat', icon: '💬', key: 'chat' },
   { to: '/profile', icon: '👤', key: 'profile' },

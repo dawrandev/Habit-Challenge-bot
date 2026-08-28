@@ -59,10 +59,26 @@ export default function ActivityPage() {
               className="flex w-full items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-left transition active:scale-[0.98]"
             >
               <span className="text-lg">{q.challenge.icon}</span>
-              <div className="flex-1">
-                <p className="text-sm">
-                  <span className="text-rival">{q.rival.first_name}</span> ·{' '}
-                  {labelOf(q)}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm">
+                  <span
+                    className={
+                      q.context?.key === 'quest' ? 'text-you' : 'text-rival'
+                    }
+                  >
+                    {q.rival.first_name}
+                  </span>{' '}
+                  · {labelOf(q)}
+                </p>
+                {/* Qaysi rejimdan kelgani — duelda raqib, missiyada guvohsan */}
+                <p className="truncate text-[11px] text-muted">
+                  {q.context?.key === 'quest' ? '🎯' : '⚔️'}{' '}
+                  {t(
+                    q.context?.key === 'quest'
+                      ? 'activity.ctxQuest'
+                      : 'activity.ctxBattle',
+                  )}
+                  {q.context?.title ? ` · ${q.context.title}` : ''}
                 </p>
               </div>
               <span className="rounded-full bg-you/15 px-2.5 py-1 text-xs font-medium text-you">

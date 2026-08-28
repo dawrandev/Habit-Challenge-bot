@@ -4,7 +4,8 @@
     "battle": "Battle",
     "activity": "Faoliyat",
     "chat": "Chat",
-    "profile": "Profil"
+    "profile": "Profil",
+    "quests": "Missiya"
   },
   "common": {
     "you": "Sen"
@@ -26,13 +27,22 @@
   "home": {
     "title": "Battle'laring",
     "new": "Yangi battle",
-    "empty": "Hali faol battle yo'q. Do'stingni chaqir!"
+    "empty": "Hali faol battle yo'q. Do'stingni chaqir!",
+    "battles": "Duellar",
+    "quests": "Missiyalar",
+    "createWhat": "Nima yaratamiz?",
+    "createBattle": "Duel",
+    "createBattleHint": "Do'sting bilan bellashuv — ikkalangiz bajarasiz",
+    "createQuest": "Missiya",
+    "createQuestHint": "Sen bajarasan, do'sting tekshiradi"
   },
   "activity": {
     "title": "Faoliyat",
     "empty": "Hozircha ish yo'q.",
     "toVerify": "Tekshiruving kutilyapti",
-    "yourReports": "Sening hisobotlaring"
+    "yourReports": "Sening hisobotlaring",
+    "ctxBattle": "Duel",
+    "ctxQuest": "Missiya"
   },
   "chat": {
     "title": "Suhbatlar",
@@ -144,5 +154,92 @@
     "read": "O'qish",
     "sport": "Sport",
     "earlyRise": "Erta turish"
+  },
+  "quest": {
+    "title": "Missiyalar",
+    "one": "Missiya",
+    "new": "Yangi missiya",
+    "empty": "Hali missiya yo'q. O'zingga maqsad qo'y — do'sting guvoh bo'lsin!",
+    "tagline": "Sen bajarasan — do'sting tekshiradi",
+    "owner": "Bajaruvchi",
+    "witness": "Guvoh",
+    "roleOwner": "Sen bajaruvchisan",
+    "roleWitness": "Sen guvohsan",
+    "noWitness": "Guvoh yo'q",
+    "inviteWitness": "Guvoh chaqirish",
+    "inviteBody": "Bu havolani do'stingga yubor — u isbotlaringni tekshiradi:",
+    "witnessHint": "Guvohga bu odatlarni bajarish shart emas — u faqat tekshiradi.",
+    "goal": "Maqsad",
+    "goalShort": "maqsad {{goal}}%",
+    "rate": "Bajarish",
+    "tracker": "Tracker",
+    "trend": "Dinamika",
+    "byChallenge": "Odatlar bo'yicha",
+    "expectedToday": "Bugun sendan kutilyapti",
+    "witnessWaiting": "Uning isbotini tekshir",
+    "daysUnit": "kun",
+    "streak": "Seriya",
+    "streakNow": "{{n}} kun ketma-ket",
+    "longestStreak": "Eng uzun seriya: {{n}} kun",
+    "streakBroken": "Seriya uzilgan — bugundan qayta boshla",
+    "tapCell": "Tafsilot uchun katakni bos",
+    "tapPoint": "Nuqtani bos",
+    "tableView": "Jadval",
+    "thChallenge": "Odat",
+    "notEnoughData": "Grafik uchun ma'lumot hali yetarli emas",
+    "nowRate": "hozir {{rate}}%",
+    "a11yRing": "Bajarish {{rate}} foiz, maqsad {{goal}} foiz",
+    "a11yTrend": "Bajarish dinamikasi, hozirgi qiymat {{rate}} foiz",
+    "state": {
+      "done": "Bajarildi",
+      "partial": "Qisman",
+      "missed": "O'tkazildi",
+      "pending": "Kutilmoqda",
+      "rest": "Dam",
+      "future": "Kelgusi"
+    },
+    "unreachable": "Maqsadga endi yetib bo'lmaydi — baribir davom et",
+    "onTrack": "Maqsad qo’l ostida",
+    "ceiling": "Maksimum {{rate}}%",
+    "statDone": "Bajarilgan",
+    "statMissed": "O'tkazilgan",
+    "statLeft": "Qolgan",
+    "achieved": "Maqsadga yetding! 🏆",
+    "missedGoal": "Maqsadga yetmadi",
+    "finished": "Yakunlandi",
+    "abandoned": "To'xtatilgan",
+    "abandon": "Missiyani to'xtatish",
+    "confirmAbandon": "Missiyani to'xtatasanmi? Statistika saqlanadi.",
+    "del": "Missiyani o'chirish",
+    "confirmDelete": "Butun missiya o'chirilsinmi? Qaytarib bo'lmaydi.",
+    "settings": "Missiya sozlamalari"
+  },
+  "questCreate": {
+    "title": "Yangi missiya",
+    "name": "Missiya nomi",
+    "namePlaceholder": "masalan: 30 kunlik yugurish",
+    "period": "Davr",
+    "d7": "7 kun",
+    "d14": "14 kun",
+    "d30": "30 kun",
+    "d60": "60 kun",
+    "goal": "Maqsad — kunlarning necha foizi",
+    "goalHint": "Davr oxirida shu foizga yetsang — muvaffaqiyat",
+    "chooseHabits": "Odatlaringni tanla",
+    "create": "Missiyani boshlash",
+    "createdTitle": "Missiya boshlandi! 🎯",
+    "createdBody": "Endi guvoh chaqir — u isbotlaringni tekshiradi:",
+    "later": "Keyinroq",
+    "needHabit": "Kamida 1 ta odat tanla"
+  },
+  "questInvite": {
+    "title": "Guvohlik taklifi",
+    "by": "seni guvoh bo'lishga chaqiryapti",
+    "explain": "Sen bu odatlarni bajarmaysan. Faqat uning kunlik isbotini ko’rib, ✓ yoki ✕ qo’yasan.",
+    "accept": "Guvoh bo'laman",
+    "decline": "Rad etish",
+    "taken": "Bu missiyaning guvohi allaqachon bor",
+    "isOwner": "Bu sening missiyang",
+    "notFound": "Taklif topilmadi"
   }
 }

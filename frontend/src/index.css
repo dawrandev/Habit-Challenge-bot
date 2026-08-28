@@ -13,6 +13,11 @@
   --color-you-dim: #7a5a13;
   --color-rival: #7c5cff; /* RAQIB — elektr-siyohrang (doim) */
   --color-rival-dim: #3d2f80;
+  /* GUVOH — missiyadagi tekshiruvchi. Ittifoqchi, raqib emas: shuning uchun
+     siyohrangdan farqli sovuq moviy. dataviz validatori: eng yomon qo'shni
+     juftlik ΔE 22.6 (deutan) / 27.0 (normal) — keng ajraladi. */
+  --color-witness: #4cc9f0;
+  --color-witness-dim: #1d5e75;
   --color-approve: #3fd07a;
   --color-reject: #ff5a5f;
   --color-text: #f3eef8;
@@ -261,11 +266,17 @@ body {
   animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Reduced motion hurmat */
+/* Reduced motion hurmat.
+   DIQQAT: kechikish ham nolga tushirilishi shart. `rise-in` va `cell-pop`
+   `both` fill bilan ishlaydi — delay qolsa element o'sha vaqt davomida
+   opacity:0 da turadi va sahifa "bo'sh" bo'lib ko'rinadi. */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
   }
 }
 
@@ -273,4 +284,70 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-you);
   outline-offset: 2px;
+}
+
+/* ============================================================
+   MISSIYA (Quest) — yakka odat yo'li, guvoh bilan
+   ============================================================ */
+
+/* Guvoh avatari — sovuq moviy nafas */
+@keyframes avatar-glow-witness {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 201, 240, 0);
+  }
+  50% {
+    box-shadow: 0 0 16px 2px rgba(76, 201, 240, 0.4);
+  }
+}
+.avatar-glow-witness {
+  animation: avatar-glow-witness 3s ease-in-out infinite;
+}
+
+/* Streak zanjiri — oxirgi bo'g'in "tirik" (SPEC §13 signature elementi) */
+@keyframes streak-tip {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px rgba(246, 176, 30, 0.45));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(246, 176, 30, 0.9));
+    transform: scale(1.14);
+  }
+}
+.streak-tip {
+  animation: streak-tip 1.9s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Halqa to'lishi — chizish effekti */
+@keyframes ring-draw {
+  from {
+    stroke-dashoffset: var(--ring-len);
+  }
+}
+.ring-draw {
+  animation: ring-draw 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Trend chizig'i chapdan o'ngga chiziladi */
+@keyframes trend-draw {
+  from {
+    stroke-dashoffset: var(--trend-len);
+  }
+}
+.trend-draw {
+  animation: trend-draw 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Tracker kataklari to'lqin bo'lib paydo bo'ladi */
+@keyframes cell-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+}
+.cell-pop {
+  animation: cell-pop 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

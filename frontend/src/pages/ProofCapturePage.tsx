@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { useSubmitProof } from '../lib/api'
+import { useSubmitQuestProof } from '../lib/quests'
 
 type Phase =
   | 'loading'
@@ -20,7 +26,14 @@ export default function ProofCapturePage() {
   const { id, challengeId } = useParams()
   const [params] = useSearchParams()
   const isScreenshot = params.get('type') === 'screenshot'
-  const submitMut = useSubmitProof(id!)
+
+  // Bir xil kamera oqimi ikkala rejimga xizmat qiladi; farq faqat qaysi
+  // React Query keshini yangilashda (duel balli vs missiya statistikasi).
+  const { pathname } = useLocation()
+  const isQuest = pathname.startsWith('/quest/')
+  const battleMut = useSubmitProof(id!)
+  const questMut = useSubmitQuestProof(id!)
+  const submitMut = isQuest ? questMut : battleMut
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)

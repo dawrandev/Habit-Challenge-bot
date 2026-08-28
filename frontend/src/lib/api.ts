@@ -19,7 +19,7 @@ export function photoUrl(fileId?: string | null): string | null {
   return `/api/photo/${encodeURIComponent(fileId)}`
 }
 
-async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const isForm = options.body instanceof FormData
   const res = await fetch(`/api${path}`, {
     ...options,
@@ -120,6 +120,8 @@ export type QueueItem = {
   }
   challenge: Challenge
   rival: User
+  /** Isbot qaysi konteynerdan keldi — duel yoki missiya */
+  context: { key: 'battle' | 'quest'; id: number; title: string }
 }
 
 // ---- Queries --------------------------------------------------------------
@@ -150,10 +152,11 @@ export const useVerifyQueue = () =>
     queryFn: () => apiFetch<QueueItem[]>('/verify-queue'),
   })
 
-export const useMessages = (id: number | string) =>
+export const useMessages = (id: number | string, enabled = true) =>
   useQuery({
     queryKey: ['messages', String(id)],
     queryFn: () => apiFetch<ChatMsg[]>(`/battles/${id}/messages`),
+    enabled,
   })
 
 // ---- Mutations ------------------------------------------------------------

@@ -1,15 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMe, useMessages, useSendMessage } from '../lib/api'
+import { useQuestMessages, useSendQuestMessage } from '../lib/quests'
 
 export default function ChatDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { data: me } = useMe()
-  const { data: messages } = useMessages(id!)
-  const send = useSendMessage(id!)
+
+  // Bir xil chat ikkala konteynerga xizmat qiladi (duel / missiya)
+  const { pathname } = useLocation()
+  const isQuest = pathname.startsWith('/quest/')
+  const battleMsgs = useMessages(id!, !isQuest)
+  const questMsgs = useQuestMessages(id!, isQuest)
+  const messages = (isQuest ? questMsgs : battleMsgs).data
+
+  const sendBattle = useSendMessage(id!)
+  const sendQuest = useSendQuestMessage(id!)
+  const send = isQuest ? sendQuest : sendBattle
   const [text, setText] = useState('')
   const endRef = useRef<HTMLDivElement>(null)
 

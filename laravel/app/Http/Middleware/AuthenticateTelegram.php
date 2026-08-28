@@ -44,6 +44,15 @@ class AuthenticateTelegram
             return $data['user'];
         }
 
+        // Dev backdoor PRODUCTION'da hech qachon ochilmaydi.
+        // Ilgari sharti "token bo'sh bo'lsa ham ruxsat" edi — ya'ni prod'da
+        // TELEGRAM_BOT_TOKEN yo'qolsa (config kesh buzildi, .env qayta yozildi)
+        // istalgan odam X-Dev-Telegram-Id bilan istalgan hisobga kirardi.
+        // Xavfsizlik tekshiruvi hech qachon "yo'q bo'lsa ochiq" bo'lmasligi kerak.
+        if (app()->isProduction()) {
+            return null;
+        }
+
         $devAllowed = config('telegram.allow_dev_auth') || config('telegram.bot_token') === '';
         $devId = $request->header('X-Dev-Telegram-Id');
         if ($devAllowed && $devId !== null) {

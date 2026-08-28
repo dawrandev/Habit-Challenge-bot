@@ -1,7 +1,8 @@
 # Battle Bot — Loyiha Spetsifikatsiyasi (SPEC)
 
-> **Bir jumlada:** Do'stlar bir-biriga odat-challenge yuboradi, har kuni jonli kamera bilan
-> isbot yuboradi, **boshqa odam** tekshiradi, davr oxirida yig'ilgan ballardan g'olib chiqadi.
+> **Bir jumlada:** Odat har kuni jonli kamera bilan isbotlanadi va uni **boshqa odam** tekshiradi.
+> Ikki rejim: **⚔️ Duel** (ikkalangiz bajarasiz, bir-biringizni tekshirasiz, g'olib chiqadi) va
+> **🎯 Missiya** (sen bajarasan, do'sting faqat guvoh bo'ladi) — §16.
 > **Falsafa:** odatlarni *bellashuv* tarzida shakllantirish; odat **uzilib qolmasligi** kerak
 > (davomiylik — asosiy qadriyat).
 
@@ -75,7 +76,8 @@ uchun **webhook domaini kerak emas**.
 - **O'tkazib yuborish** (navbatdagi kun, kun oxirида tasdiqlangan bajarish YO'Q): **−0.5** ochko.
   - "Tasdiqlangan bajarish yo'q" = umuman yubormadi **YOKI** yuborib rad etildi va tuzatmadi.
   - **Rad etilgani ham jarima** (kun oxirida tuzatilmasa).
-- **Minimal ball: 0** — hisob 0 dan pastga tushmaydi (manfiy bo'lmaydi).
+- ~~**Minimal ball: 0**~~ — ⚠️ **BEKOR QILINDI** (commit `21f785b`): pol olib tashlandi, ball
+  manfiy bo'lishi mumkin. Sabab: pol bajarilgan ballni yashirib qo'yardi. Kod = manba.
 - **Kun oxiri = Toshkent 24:00.** O'sha kungача **qayta yuborish mumkin** (rad etilsa yaxshiroq rasm).
 - **G'olib:** davr oxirida **barcha challenge'lar ballari yig'indisi eng ko'p** bo'lgan o'yinchi.
   - Har challenge alohida g'olibi **yo'q** — faqat umumiy yig'indi.
@@ -258,3 +260,107 @@ Telegram light/dark bilan uyg'un (lekin app o'z Arena identligini saqlaydi).
 **Infra:**
 - **PostgreSQL** (Docker yoki bepul cloud — Railway/Render/Neon).
 - Deploy: Railway/Render (bepul HTTPS subdomen — Mini App uchun).
+
+---
+
+## 16. 🎯 MISSIYA rejimi (Quest) — asimmetrik javobgarlik
+
+> **Muammo:** duel simmetrik — challenge ikkala o'yinchiga tegishli. Lekin bir odamga
+> kerak bo'lgan odat ikkinchisiga kerak bo'lmasligi mumkin. Do'sting sen bilan birga
+> yugurishni xohlamasligi mumkin, ammo **seni kuzatishga** rozi bo'ladi.
+>
+> **Yechim:** rollar ajratiladi — **ega bajaradi, guvoh tekshiradi.**
+
+### 16.1 Farqlar jadvali
+
+| | ⚔️ Duel (Battle) | 🎯 Missiya (Quest) |
+|---|---|---|
+| Ishtirokchi | 2 raqib | 1 ega + 1 guvoh |
+| Simmetriya | simmetrik | **asimmetrik** |
+| Odat kimniki | ikkalasiniki | **faqat eganiki** |
+| Kim isbot yuboradi | ikkalasi | **faqat ega** |
+| Kim tekshiradi | bir-birini (kesishgan) | **faqat guvoh** |
+| Ball | +1 / −0.5, g'olib | ball yo'q — **bajarish foizi** |
+| Yakun | g'olib e'lon qilinadi | **maqsadga yetildimi** (achieved / missed) |
+| Challenge qo'shish | ikki tomon roziligi shart | **ega o'zi qo'shadi** (odat uniki) |
+
+### 16.2 Hayot sikli
+
+- **Yaratish:** ega nom, davr (7/14/30/60 kun), **maqsad foizi** (50/70/80/90/100) va
+  odatlarni tanlaydi. Missiya **darhol boshlanadi** — guvohni kutmaydi.
+- **Guvoh:** deep-link `t.me/<Bot>?start=quest_<token>` orqali qo'shiladi.
+  - Guvoh **aynan bitta**. Ega o'ziga guvoh bo'la olmaydi. Joy band bo'lsa — rad.
+  - **Guvoh yo'q bo'lsa ham missiya ishlaydi:** isbotlar 24 soatdan keyin
+    avtomatik tasdiqlanadi (§5 mantiqi — o'z harakatsizliging uchun jazolanmaysan).
+- **To'xtatish (abandon):** ega istalgan vaqtda to'xtatadi. **Jazo yo'q** — yutqazadigan
+  raqib yo'q. Statistika saqlanadi.
+- **Yakun:** `end_date` o'tgach cron missiyani yopadi va natijani qo'yadi:
+  `bajarish foizi >= maqsad` → **achieved**, aks holda **missed**. Ikkala tomonga xabar.
+
+### 16.3 Statistika (ball emas)
+
+Atamalar — **slot** = (odat × navbatdagi kun) juftligi:
+
+| Atama | Ta'rif |
+|-------|--------|
+| `done` | tasdiqlangan slot |
+| `missed` | kun tugadi, tasdiq yo'q |
+| `pending` | **bugungi**, hali hal bo'lmagan |
+| `resolved` | `done + missed` — **foiz maxraji** |
+| `planned` | butun davr bo'yicha barcha slotlar |
+
+- **Bajarish foizi** = `done / resolved × 100`.
+  **Bugungi tugallanmagan ish foizni pasaytirmaydi** (kun tugamagan — §4 falsafasi).
+- **Shift (ceiling)** = `(planned − missed) / planned × 100` — bundan buyon hammasi
+  bajarilsa erishiladigan maksimum. `ceiling < maqsad` bo'lsa maqsad **matematik
+  yo'qolgan** — UI buni ochiq aytadi (lekin missiya to'xtamaydi).
+- **Seriya (streak):** ketma-ket **mukammal kunlar** (o'sha kunning BARCHA navbatdagi
+  odatlari bajarilgan). Dam kunlari (navbat yo'q) seriyani **uzmaydi va uzaytirmaydi**.
+  Bugun hali ochiq bo'lsa — seriyani uzmaydi. Har odatning **o'z seriyasi** ham bor.
+
+### 16.4 Chartlar (SPEC §13 dizayn tizimida)
+
+| Chart | Forma | Nima uchun shu forma |
+|-------|-------|----------------------|
+| **Maqsad halqasi** | meter | Bitta qiymat — pie emas. Maqsad halqada nasechka bo'lib turadi |
+| **Tracker to'ri** | heatmap (odat × kun) | SPEC §8 tracker'i. Har katak `✓ ◐ ✕ • ·` glif oladi |
+| **Seriya zanjiri** | zanjir | SPEC §13 signature elementi; oxirgi bo'g'in "tirik" |
+| **Dinamika** | chiziq + maqsad | Kümülativ foiz. **Bitta o'q** — ikkinchi o'q hech qachon |
+| **Odatlar bo'yicha** | gorizontal barlar | Bitta o'lchov → **bitta rang** (qiymat-rampa emas) |
+
+**A11y — majburiy:** `--approve` (#3FD07A) va `--reject` (#FF5A5F) deuteranopiyada
+ΔE ≈ **6.2** — qizil/yashil ko'r odam ularni **ajrata olmaydi**. Shuning uchun:
+- har status belgisi **glif** ham oladi (rang — ikkilamchi kanal),
+- har chart yonida **matnli legenda** turadi,
+- tracker'da **jadval ko'rinishi** bor — ma'lumot chart ortida qulflanmaydi.
+
+### 16.5 Rang tokeni
+
+| Token | Hex | Rol |
+|-------|-----|-----|
+| `--witness` | `#4CC9F0` | **GUVOH** — sovuq moviy. Ittifoqchi, raqib emas |
+
+Nega siyohrang (`--rival`) emas: guvoh raqib emas. Validator: eng yomon qo'shni juftlik
+ΔE **22.6** (deutan) / **27.0** (normal) — keng ajraladi.
+
+### 16.6 Texnik: umumiy isbot quvuri
+
+Duel va missiya **bitta** isbot quvurini bo'lishadi (kamera → `file_id` → tekshiruv →
+nizo → auto-tasdiq). Buni `App\Contracts\ProofContext` interfeysi ta'minlaydi:
+
+```php
+interface ProofContext {
+    public function canSubmit(int $userId): bool;                    // kim bajaradi
+    public function canVerify(int $userId, int $submitterId): bool;  // kim tekshiradi
+    public function hasMember(int $userId): bool;
+    // ...
+}
+```
+
+`Battle` va `Quest` shu interfeysni **turlicha** amalga oshiradi — asimmetriya aynan
+shu ikki metodda yashaydi. `CompletionService`, `VerificationService`, `DisputeService`
+va `ChatService` qaysi rejimda ishlayotganini **bilmaydi**.
+
+DB'da `challenges` va `chat_messages` jadvallari `battle_id` **yoki** `quest_id` ga
+tegishli (aynan bittasi). `completions`, `verifications`, `disputes` **o'zgarmagan** —
+ular faqat `challenge_id` ga bog'langan.

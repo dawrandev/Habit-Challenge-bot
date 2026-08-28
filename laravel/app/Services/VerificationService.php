@@ -7,9 +7,9 @@ namespace App\Services;
 use App\Enums\CompletionStatus;
 use App\Enums\DisputeStatus;
 use App\Models\BattleParticipant;
-use App\Models\Challenge;
 use App\Models\Completion;
 use App\Models\Dispute;
+use App\Models\Quest;
 use App\Models\User;
 use App\Services\Telegram\NotificationService;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -18,24 +18,27 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Tekshiruv (tasdiq / rad) + nizoni hal qilish — SPEC §5.
+ *
+ * Kim tekshira olishini ProofContext hal qiladi:
+ *   duel    — raqib (kesishgan tekshiruv)
+ *   missiya — faqat guvoh (ega o'zini tekshira olmaydi)
  */
 class VerificationService
 {
     public function __construct(
         private readonly NotificationService $notifications,
-        private readonly BattleAccess $access,
     ) {}
 
     public function verify(User $verifier, int $completionId, bool $approve): Completion
     {
-        $completion = Completion::with('challenge')->find($completionId)
+        $completion = Completion::with(['challenge', 'user'])->find($completionId)
             ?? throw new NotFoundHttpException('Hisobot topilmadi');
 
-        if ($completion->user_id === $verifier->id) {
-            throw new AccessDeniedHttpException("O'z hisobotingni tekshira olmaysan");
-        }
-        if (! $this->access->isParticipant($completion->challenge->battle_id, $verifier->id)) {
-            throw new AccessDeniedHttpException('Ruxsat yo\'q');
+        $context = $completion->challenge->context();
+
+        // Bitta tekshiruv o'z ichiga oladi: o'zini tekshirmaslik, a'zolik va rol.
+        if (! $context->canVerify($verifier->id, $completion->user_id)) {
+            throw new AccessDeniedHttpException('Bu hisobotni tekshirish huquqing yo\'q');
         }
         if ($completion->status !== CompletionStatus::Pending) {
             throw new ConflictHttpException('Bu hisobot allaqachon hal qilingan');
@@ -73,25 +76,55 @@ class VerificationService
     }
 
     /**
-     * Boshqa ishtirokchilarning tekshiruv kutayotgan pending hisobotlari (Faoliyat).
+     * Foydalanuvchi tekshirishi kerak bo'lgan hisobotlar (Faoliyat ekrani).
      *
-     * @return array<int, array{completion: Completion, challenge: Challenge, rival: User}>
+     * Ikki manbadan yig'iladi: duel raqiblari + guvohlik qilayotgan missiyalar.
+     *
+     * @return array<int, array<string, mixed>>
      */
     public function queueFor(User $user): array
     {
         $battleIds = BattleParticipant::where('user_id', $user->id)->pluck('battle_id');
+        $questIds = Quest::where('witness_id', $user->id)->pluck('id');
+
+        if ($battleIds->isEmpty() && $questIds->isEmpty()) {
+            return [];
+        }
 
         $pending = Completion::query()
-            ->with(['challenge', 'user'])
-            ->whereHas('challenge', fn ($q) => $q->whereIn('battle_id', $battleIds))
+            ->with(['challenge.battle.participants', 'challenge.quest', 'user'])
+            ->whereHas('challenge', fn ($q) => $q
+                ->whereIn('battle_id', $battleIds)
+                ->orWhereIn('quest_id', $questIds))
             ->where('user_id', '!=', $user->id)
             ->where('status', CompletionStatus::Pending->value)
+            ->orderBy('submitted_at')
             ->get();
 
-        return $pending->map(fn (Completion $c) => [
-            'completion' => $c,
-            'challenge' => $c->challenge,
-            'rival' => $c->user,
-        ])->all();
+        return $pending
+            ->filter(function (Completion $completion) use ($user) {
+                $context = $completion->challenge->context();
+
+                // Yakunlangan duel/missiya navbatda turmasin.
+                return $context->isOpen()
+                    && $context->canVerify($user->id, $completion->user_id);
+            })
+            ->map(function (Completion $completion) {
+                $challenge = $completion->challenge;
+                $context = $challenge->context();
+
+                return [
+                    'completion' => $completion,
+                    'challenge' => $challenge,
+                    'rival' => $completion->user,
+                    'context' => [
+                        'key' => $context->contextKey(),
+                        'id' => $context->contextId(),
+                        'title' => $context->contextTitle(),
+                    ],
+                ];
+            })
+            ->values()
+            ->all();
     }
 }

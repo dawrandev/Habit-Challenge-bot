@@ -4,7 +4,8 @@
     "battle": "Battle",
     "activity": "Activity",
     "chat": "Chat",
-    "profile": "Profile"
+    "profile": "Profile",
+    "quests": "Quests"
   },
   "common": {
     "you": "You"
@@ -26,13 +27,22 @@
   "home": {
     "title": "Your battles",
     "new": "New battle",
-    "empty": "No active battles yet. Challenge a friend!"
+    "empty": "No active battles yet. Challenge a friend!",
+    "battles": "Duels",
+    "quests": "Quests",
+    "createWhat": "What do you want to create?",
+    "createBattle": "Duel",
+    "createBattleHint": "Compete with a friend — you both do it",
+    "createQuest": "Quest",
+    "createQuestHint": "You do it, your friend verifies"
   },
   "activity": {
     "title": "Activity",
     "empty": "Nothing to do right now.",
     "toVerify": "Waiting for your check",
-    "yourReports": "Your reports"
+    "yourReports": "Your reports",
+    "ctxBattle": "Duel",
+    "ctxQuest": "Quest"
   },
   "chat": {
     "title": "Chats",
@@ -144,5 +154,92 @@
     "read": "Reading",
     "sport": "Sport",
     "earlyRise": "Early rise"
+  },
+  "quest": {
+    "title": "Quests",
+    "one": "Quest",
+    "new": "New quest",
+    "empty": "No quests yet. Set yourself a goal and let a friend witness it!",
+    "tagline": "You do it — your friend verifies it",
+    "owner": "Doer",
+    "witness": "Witness",
+    "roleOwner": "You are the doer",
+    "roleWitness": "You are the witness",
+    "noWitness": "No witness yet",
+    "inviteWitness": "Invite a witness",
+    "inviteBody": "Send this link to a friend — they will verify your proofs:",
+    "witnessHint": "The witness does not have to do these habits — they only verify them.",
+    "goal": "Goal",
+    "goalShort": "goal {{goal}}%",
+    "rate": "Completion",
+    "tracker": "Tracker",
+    "trend": "Trend",
+    "byChallenge": "By habit",
+    "expectedToday": "Expected from you today",
+    "witnessWaiting": "Verify their proof",
+    "daysUnit": "days",
+    "streak": "Streak",
+    "streakNow": "{{n}} days in a row",
+    "longestStreak": "Longest streak: {{n}} days",
+    "streakBroken": "Streak broken — start again today",
+    "tapCell": "Tap a cell for details",
+    "tapPoint": "Tap a point",
+    "tableView": "Table",
+    "thChallenge": "Habit",
+    "notEnoughData": "Not enough data for a chart yet",
+    "nowRate": "now {{rate}}%",
+    "a11yRing": "Completion {{rate}} percent, goal {{goal}} percent",
+    "a11yTrend": "Completion trend, currently {{rate}} percent",
+    "state": {
+      "done": "Done",
+      "partial": "Partial",
+      "missed": "Missed",
+      "pending": "Pending",
+      "rest": "Rest",
+      "future": "Upcoming"
+    },
+    "unreachable": "The goal is out of reach now — keep going anyway",
+    "onTrack": "Goal within reach",
+    "ceiling": "Max {{rate}}%",
+    "statDone": "Done",
+    "statMissed": "Missed",
+    "statLeft": "Left",
+    "achieved": "Goal reached! 🏆",
+    "missedGoal": "Goal not reached",
+    "finished": "Finished",
+    "abandoned": "Stopped",
+    "abandon": "Stop the quest",
+    "confirmAbandon": "Stop this quest? Your stats will be kept.",
+    "del": "Delete quest",
+    "confirmDelete": "Delete the whole quest? This cannot be undone.",
+    "settings": "Quest settings"
+  },
+  "questCreate": {
+    "title": "New quest",
+    "name": "Quest name",
+    "namePlaceholder": "e.g. 30 days of running",
+    "period": "Period",
+    "d7": "7 days",
+    "d14": "14 days",
+    "d30": "30 days",
+    "d60": "60 days",
+    "goal": "Goal — what share of days",
+    "goalHint": "Reach this share by the end and the quest succeeds",
+    "chooseHabits": "Choose your habits",
+    "create": "Start the quest",
+    "createdTitle": "Quest started! 🎯",
+    "createdBody": "Now invite a witness — they will verify your proofs:",
+    "later": "Later",
+    "needHabit": "Pick at least 1 habit"
+  },
+  "questInvite": {
+    "title": "Witness request",
+    "by": "is asking you to be their witness",
+    "explain": "You will not do these habits. You only look at their daily proof and mark ✓ or ✕.",
+    "accept": "I'll be the witness",
+    "decline": "Decline",
+    "taken": "This quest already has a witness",
+    "isOwner": "This is your own quest",
+    "notFound": "Invite not found"
   }
 }

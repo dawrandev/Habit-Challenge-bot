@@ -31,7 +31,9 @@ class BattleService
     public function create(User $user, string $title, int $periodDays, bool $startTomorrow, array $challenges): Battle
     {
         $start = Clock::todayLocal()->addDays($startTomorrow ? 1 : 0);
-        $end = $start->addDays($periodDays);
+        // Inklyuziv davr: start..end ikkalasi ham sanaladi, shuning uchun −1.
+        // (Ilgari 7 kunlik duel aslida 8 kun davom etardi.)
+        $end = $start->addDays(max(1, $periodDays) - 1);
 
         $battle = Battle::create([
             'title' => $title,
