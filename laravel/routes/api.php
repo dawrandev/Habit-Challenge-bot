@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\BattleController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\CompletionController;
+use App\Http\Controllers\Api\ConfigController;
 use App\Http\Controllers\Api\DevController;
 use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\PhotoController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Api\WebhookController;
 use Illuminate\Support\Facades\Route;
 
 // Ochiq (auth'siz)
+Route::get('/config', ConfigController::class);
 Route::get('/photo/{fileId}', [PhotoController::class, 'show'])->middleware('throttle:60,1');
 Route::post('/telegram/webhook', [WebhookController::class, 'handle']);
 

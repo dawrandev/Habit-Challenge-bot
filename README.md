@@ -96,11 +96,16 @@ beradi. Bitta HTTPS origin — Telegram Mini App uchun ideal, CORS muammosi yo'q
 ### 2. Frontend'ni build qilish (lokalda, deploy'dan oldin)
 ```bash
 cd frontend
-VITE_BOT_USERNAME=YourBot npm run build
+npm run build
 cp -r dist/assets/* ../laravel/public/assets/
 cp dist/index.html ../laravel/public/index.html
 ```
 Build natijasi repo'ga commit qilinadi — serverda `npm` kerak emas.
+
+> Bot username build'ga **qotirilmaydi** — u `/api/config` orqali `.env` dan
+> ish vaqtida olinadi. Ya'ni botni almashtirsangiz rebuild shart emas.
+> (Ilgari `VITE_BOT_USERNAME` build flagi bo'lgan; uni unutish barcha taklif
+> havolalarini jimgina `t.me/YourBot` ga yuborardi.)
 
 ### 3. Serverda
 ```bash
@@ -109,6 +114,12 @@ bash deploy.sh     # git pull · composer install · migrate --force · kesh · 
 ```
 
 `deploy.sh` **`migrate --force`** ishlatadi (`migrate:fresh` EMAS) — mavjud ma'lumot saqlanadi.
+Oxirida `battle:doctor` sozlamalarni tekshiradi (bot, webhook, URL, DB) va muammoni
+aniq ko'rsatadi. Xohlagan vaqtda alohida ham chaqirsa bo'ladi:
+
+```bash
+php artisan battle:doctor
+```
 
 **Kerakli env:**
 ```
@@ -116,7 +127,7 @@ APP_ENV=production
 APP_DEBUG=false
 DB_CONNECTION=mysql            # DB_HOST / DB_DATABASE / DB_USERNAME / DB_PASSWORD
 TELEGRAM_BOT_TOKEN=...
-TELEGRAM_BOT_USERNAME=YourBot
+TELEGRAM_BOT_USERNAME=YourBot   # taklif havolalari shu nom bilan yasaladi
 TELEGRAM_STORAGE_CHAT_ID=-100...
 TELEGRAM_WEBHOOK_SECRET=<tasodifiy satr>
 TELEGRAM_WEBAPP_URL=https://sizning-domeningiz

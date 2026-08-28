@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { useDeleteBattle, useUpdateBattle, type Battle } from '../lib/api'
+import { useInviteLink } from '../lib/invite'
 
 export default function BattleSettingsModal({
   battle,
@@ -23,8 +24,7 @@ export default function BattleSettingsModal({
   const [title, setTitle] = useState(battle.title)
   const [copied, setCopied] = useState(false)
 
-  const botUser = import.meta.env.VITE_BOT_USERNAME ?? 'YourBot'
-  const inviteLink = `https://t.me/${botUser}?start=battle_${battle.invite_token}`
+  const { link: inviteLink, ready } = useInviteLink('battle', battle.invite_token)
 
   function saveTitle() {
     if (!title.trim() || title.trim() === battle.title) return
@@ -32,6 +32,7 @@ export default function BattleSettingsModal({
   }
 
   function copy() {
+    if (!ready) return
     navigator.clipboard?.writeText(inviteLink)
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
@@ -69,12 +70,13 @@ export default function BattleSettingsModal({
                 {t('crud.shareInvite')}
               </label>
               <div className="mb-2 truncate rounded-2xl border border-line bg-surface-2 px-4 py-3 text-sm text-you">
-                {inviteLink}
+                {ready ? inviteLink : '…'}
               </div>
               <button
                 type="button"
                 onClick={copy}
-                className="w-full rounded-2xl bg-you/15 py-3 text-sm font-semibold text-you transition active:scale-[0.98]"
+                disabled={!ready}
+                className="w-full rounded-2xl bg-you/15 py-3 text-sm font-semibold text-you transition active:scale-[0.98] disabled:opacity-50"
               >
                 {copied ? t('create.copied') : t('create.copy')}
               </button>

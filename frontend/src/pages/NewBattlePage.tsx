@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
 import { useCreateBattle, type ChallengeInput } from '../lib/api'
 import { ICON_SET, TEMPLATES } from '../lib/challenges'
+import { useInviteLink } from '../lib/invite'
 
 const PERIODS = [
   { days: 7, key: 'week1' },
@@ -100,9 +101,8 @@ export default function NewBattlePage() {
     )
   }
 
-  const inviteLink = token
-    ? `https://t.me/${import.meta.env.VITE_BOT_USERNAME ?? 'YourBot'}?start=battle_${token}`
-    : ''
+  const invite = useInviteLink('battle', token ?? undefined)
+  const inviteLink = invite.link
 
   // --- Taklif ekrani ---
   if (token) {

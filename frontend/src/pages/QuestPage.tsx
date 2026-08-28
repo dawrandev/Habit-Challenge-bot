@@ -104,9 +104,6 @@ export default function QuestPage() {
     )
   }
 
-  const inviteLink = `https://t.me/${
-    import.meta.env.VITE_BOT_USERNAME ?? 'YourBot'
-  }?start=quest_${quest.invite_token}`
 
   return (
     <PageTransition>
@@ -257,10 +254,7 @@ export default function QuestPage() {
             <p className="mb-3 text-xs text-muted">{t('quest.witnessHint')}</p>
             <button
               type="button"
-              onClick={() => {
-                navigator.clipboard?.writeText(inviteLink)
-                setSettingsOpen(true)
-              }}
+              onClick={() => setSettingsOpen(true)}
               className="w-full rounded-xl bg-witness py-2.5 text-sm font-semibold text-bg transition active:scale-[0.98]"
             >
               👁 {t('quest.inviteWitness')}

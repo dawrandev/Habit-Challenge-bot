@@ -55,4 +55,8 @@ else
   echo ""
 fi
 
+# --- Yakuniy tekshiruv: sozlamalar butunmi ---
+echo ""
+php artisan battle:doctor || true
+
 echo "✅ Deploy tayyor."

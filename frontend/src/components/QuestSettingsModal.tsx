@@ -7,6 +7,7 @@ import {
   useUpdateQuest,
   type Quest,
 } from '../lib/quests'
+import { useInviteLink } from '../lib/invite'
 
 const GOALS = [50, 70, 80, 90, 100]
 
@@ -32,8 +33,7 @@ export default function QuestSettingsModal({
   const [goal, setGoal] = useState(quest.goal_percent)
   const [copied, setCopied] = useState(false)
 
-  const botUser = import.meta.env.VITE_BOT_USERNAME ?? 'YourBot'
-  const inviteLink = `https://t.me/${botUser}?start=quest_${quest.invite_token}`
+  const { link: inviteLink, ready } = useInviteLink('quest', quest.invite_token)
 
   const dirty = title.trim() !== quest.title || goal !== quest.goal_percent
 
@@ -43,6 +43,7 @@ export default function QuestSettingsModal({
   }
 
   function copy() {
+    if (!ready) return
     navigator.clipboard?.writeText(inviteLink)
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
@@ -89,12 +90,13 @@ export default function QuestSettingsModal({
                   {t('quest.witnessHint')}
                 </p>
                 <div className="mb-2 truncate rounded-2xl border border-line bg-surface-2 px-4 py-3 text-sm text-witness">
-                  {inviteLink}
+                  {ready ? inviteLink : '…'}
                 </div>
                 <button
                   type="button"
                   onClick={copy}
-                  className="w-full rounded-2xl bg-witness/15 py-3 text-sm font-semibold text-witness transition active:scale-[0.98]"
+                  disabled={!ready}
+                  className="w-full rounded-2xl bg-witness/15 py-3 text-sm font-semibold text-witness transition active:scale-[0.98] disabled:opacity-50"
                 >
                   {copied ? t('create.copied') : t('create.copy')}
                 </button>

@@ -111,6 +111,16 @@ class TelegramClient
     }
 
     /**
+     * Webhook holati — diagnostika uchun (battle:doctor).
+     *
+     * @return array<string, mixed>
+     */
+    public function getWebhookInfo(): array
+    {
+        return (array) Http::get($this->method('getWebhookInfo'))->json('result', []);
+    }
+
+    /**
      * Doimiy menyu tugmasi (input yonida) — Mini App'ni ochadi.
      */
     public function setMenuButton(string $text, string $url): array

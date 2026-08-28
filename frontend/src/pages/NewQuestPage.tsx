@@ -6,6 +6,7 @@ import PageTransition from '../components/PageTransition'
 import { type ChallengeInput } from '../lib/api'
 import { useCreateQuest } from '../lib/quests'
 import { ICON_SET, TEMPLATES } from '../lib/challenges'
+import { useInviteLink } from '../lib/invite'
 
 const PERIODS = [
   { days: 7, key: 'd7' },
@@ -32,6 +33,12 @@ export default function NewQuestPage() {
     null,
   )
   const [copied, setCopied] = useState(false)
+
+  // Bot username backend .env dan keladi (build flagidan emas)
+  const { link: inviteLink, ready: linkReady } = useInviteLink(
+    'quest',
+    created?.token,
+  )
 
   const weekdays = t('weekdays', { returnObjects: true }) as string[]
 
@@ -113,9 +120,7 @@ export default function NewQuestPage() {
 
   // --- Guvoh chaqirish ekrani ---
   if (created) {
-    const link = `https://t.me/${
-      import.meta.env.VITE_BOT_USERNAME ?? 'YourBot'
-    }?start=quest_${created.token}`
+    const link = inviteLink
 
     return (
       <PageTransition>
@@ -134,15 +139,16 @@ export default function NewQuestPage() {
             <p className="mb-4 text-xs text-muted">{t('quest.witnessHint')}</p>
 
             <div className="mb-3 rounded-2xl border border-line bg-surface px-4 py-3 text-sm break-all text-witness">
-              {link}
+              {linkReady ? link : '…'}
             </div>
             <button
               type="button"
+              disabled={!linkReady}
               onClick={() => {
                 navigator.clipboard?.writeText(link)
                 setCopied(true)
               }}
-              className="rounded-2xl bg-witness px-6 py-3 font-semibold text-bg transition active:scale-95"
+              className="rounded-2xl bg-witness px-6 py-3 font-semibold text-bg transition active:scale-95 disabled:opacity-50"
             >
               {copied ? t('create.copied') : t('create.copy')}
             </button>
