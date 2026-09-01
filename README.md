@@ -108,10 +108,16 @@ Build natijasi repo'ga commit qilinadi — serverda `npm` kerak emas.
 > havolalarini jimgina `t.me/YourBot` ga yuborardi.)
 
 ### 3. Serverda
+
+`laravel/` papkasi ichida:
 ```bash
-cd laravel
-bash deploy.sh     # git pull · composer install · migrate --force · kesh · menyu tugmasi
+bash deploy.sh
 ```
+Repo ildizida bo'lsangiz — `bash laravel/deploy.sh`. Skript o'zi turgan
+papkaga o'tadi, shuning uchun qayerdan chaqirsangiz ham ishlaydi.
+
+Nima qiladi: `git pull` · `composer install` · `migrate --force` · kesh ·
+webhook + menyu tugmasi · oxirida `battle:doctor` tekshiruvi.
 
 `deploy.sh` **`migrate --force`** ishlatadi (`migrate:fresh` EMAS) — mavjud ma'lumot saqlanadi.
 Oxirida `battle:doctor` sozlamalarni tekshiradi (bot, webhook, URL, DB) va muammoni
