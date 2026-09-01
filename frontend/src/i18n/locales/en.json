@@ -52,7 +52,8 @@
     "title": "Profile",
     "language": "Language",
     "stats": "Statistics",
-    "archive": "Finished battles"
+    "archive": "Finished battles",
+    "archiveEmpty": "No finished duels or quests yet"
   },
   "proof": {
     "title": "Today's proof",
@@ -242,5 +243,27 @@
     "taken": "This quest already has a witness",
     "isOwner": "This is your own quest",
     "notFound": "Invite not found"
+  },
+  "result": {
+    "finished": "Duel finished",
+    "youWon": "YOU WON!",
+    "youLost": "You lost this one",
+    "draw": "Draw",
+    "won": "Won",
+    "lost": "Lost",
+    "winnerIs": "Winner —",
+    "finalScore": "Final score"
+  },
+  "stats": {
+    "won": "Won",
+    "lost": "Lost",
+    "achieved": "Goals met",
+    "proofs": "Proofs ✓",
+    "reliability": "Review reliability",
+    "reliabilityHint": "You reviewed {{a}} of {{n}}",
+    "last30": "Last 30 days",
+    "totalProofs": "{{n}} total",
+    "nProofs": "{{n}} proofs",
+    "bestDay": "best: {{n}}/day"
   }
 }

@@ -81,9 +81,17 @@ export type PlayerScore = {
   is_me: boolean
 }
 
+/** Yakuniy natija — faqat duel tugagach to'ldiriladi. */
+export type BattleResult = {
+  winner: User | null
+  is_draw: boolean
+  you_won: boolean
+}
+
 export type BattleListItem = {
   battle: Battle
   players: PlayerScore[]
+  result: BattleResult | null
   days_left: number
   hours_left: number
 }
@@ -92,6 +100,9 @@ export type BattleDetail = {
   battle: Battle
   players: PlayerScore[]
   challenges: Challenge[]
+  result: BattleResult | null
+  days_left: number
+  hours_left: number
 }
 
 export type TodayTask = {

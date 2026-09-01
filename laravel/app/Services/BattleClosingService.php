@@ -9,6 +9,7 @@ use App\Enums\BattleStatus;
 use App\Enums\CompletionStatus;
 use App\Models\Battle;
 use App\Models\Completion;
+use App\Services\Telegram\NotificationService;
 use App\Support\Clock;
 use Carbon\CarbonImmutable;
 
@@ -20,6 +21,7 @@ class BattleClosingService
     public function __construct(
         private readonly ScoringService $scoring,
         private readonly WinnerResolver $winnerResolver,
+        private readonly NotificationService $notifications,
     ) {}
 
     /**
@@ -106,35 +108,107 @@ class BattleClosingService
         $today = Clock::todayLocal();
         $count = 0;
 
-        $battles = Battle::with(['challenges', 'participants'])
+        $battles = Battle::with(['challenges', 'participants.user'])
             ->where('status', BattleStatus::Active->value)
             ->whereDate('end_date', '<', $today->toDateString())
             ->get();
 
         foreach ($battles as $battle) {
-            if ($battle->participants->count() === 2) {
-                [$a, $b] = [$battle->participants[0], $battle->participants[1]];
-
-                $result = $this->winnerResolver->decide(
-                    $a->score,
-                    $this->scoring->creditedCount($battle, $a->user_id),
-                    $b->score,
-                    $this->scoring->creditedCount($battle, $b->user_id),
-                );
-
-                $battle->winner_id = match (true) {
-                    $result > 0 => $a->user_id,
-                    $result < 0 => $b->user_id,
-                    default => null,
-                };
-            }
-
-            $battle->status = BattleStatus::Finished;
-            $battle->save();
+            $this->close($battle);
             $count++;
         }
 
         return $count;
+    }
+
+    /**
+     * Bitta duelni davri tugagan bo'lsa joyida yopadi.
+     *
+     * Cron kechikkan yoki umuman sozlanmagan bo'lsa ham o'yinchi natijani
+     * darhol ko'radi — g'olib ekrani cron'ga bog'liq bo'lib qolmasin.
+     */
+    public function closeIfDue(Battle $battle): bool
+    {
+        if ($battle->status !== BattleStatus::Active) {
+            return false;
+        }
+
+        if ($battle->end_date->toDateString() >= Clock::todayLocal()->toDateString()) {
+            return false;
+        }
+
+        $battle->loadMissing(['challenges', 'participants.user']);
+        $this->close($battle);
+
+        return true;
+    }
+
+    /**
+     * G'olibni aniqlaydi va duelni yopadi.
+     *
+     * Ball ATAYLAB shu yerda qayta hisoblanadi: `battle_participants.score`
+     * faqat `recomputeScores()` da yangilanadi, shuning uchun unga tayanish
+     * bu metodni chaqirilish tartibiga bog'liq qilib qo'yardi.
+     */
+    private function close(Battle $battle): void
+    {
+        if ($battle->participants->count() === 2) {
+            [$a, $b] = [$battle->participants[0], $battle->participants[1]];
+
+            $scoreA = $this->scoring->forParticipant($battle, $a->user_id)['score'];
+            $scoreB = $this->scoring->forParticipant($battle, $b->user_id)['score'];
+
+            $result = $this->winnerResolver->decide(
+                $scoreA,
+                $this->scoring->creditedCount($battle, $a->user_id),
+                $scoreB,
+                $this->scoring->creditedCount($battle, $b->user_id),
+            );
+
+            $battle->winner_id = match (true) {
+                $result > 0 => $a->user_id,
+                $result < 0 => $b->user_id,
+                default => null,
+            };
+
+            // Yakuniy ballni muhrlaymiz — arxivda o'zgarmas bo'lib qolsin
+            $a->update(['score' => $scoreA]);
+            $b->update(['score' => $scoreB]);
+        }
+
+        $battle->status = BattleStatus::Finished;
+        $battle->save();
+
+        $this->announce($battle);
+    }
+
+    /**
+     * Natijani ikkala o'yinchiga e'lon qiladi.
+     */
+    private function announce(Battle $battle): void
+    {
+        $battle->loadMissing('participants.user');
+
+        $winner = $battle->winner_id !== null
+            ? $battle->participants->firstWhere('user_id', $battle->winner_id)?->user
+            : null;
+
+        foreach ($battle->participants as $participant) {
+            $user = $participant->user;
+            if ($user === null || ! $user->telegram_id) {
+                continue;
+            }
+
+            if ($winner === null) {
+                $text = "🤝 <b>{$battle->title}</b> — durang!\nHech kim yutmadi.";
+            } elseif ($winner->id === $user->id) {
+                $text = "🏆 <b>{$battle->title}</b> — SEN YUTDING!\nTabriklaymiz 🔥";
+            } else {
+                $text = "🏁 <b>{$battle->title}</b> yakunlandi.\nG'olib: <b>{$winner->first_name}</b>";
+            }
+
+            $this->notifications->notify([$user->telegram_id], $text);
+        }
     }
 
     public function runDailyClose(): void

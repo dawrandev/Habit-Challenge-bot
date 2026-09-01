@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\DevController;
 use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\PhotoController;
 use App\Http\Controllers\Api\QuestController;
+use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\WebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,7 @@ Route::post('/telegram/webhook', [WebhookController::class, 'handle']);
 // Telegram initData auth
 Route::middleware(['tg.auth', 'throttle:120,1'])->group(function () {
     Route::get('/me', MeController::class);
+    Route::get('/stats', StatsController::class);
 
     /*
      * ⚔️ Duel — 1v1, simmetrik: ikkalasi bajaradi, bir-birini tekshiradi.

@@ -100,9 +100,15 @@ export default function HomePage() {
   const { data: quests, isLoading: questsLoading } = useQuests()
   const [createOpen, setCreateOpen] = useState(false)
 
+  // Home faqat DAVOM ETAYOTGANLARNI ko'rsatadi; tugaganlar profil arxivida
+  const activeBattles = (battles ?? []).filter(
+    (b) => b.battle.status === 'active' || b.battle.status === 'pending',
+  )
+  const activeQuests = (quests ?? []).filter((q) => q.quest.status === 'active')
+
   const loading = isLoading || questsLoading
-  const hasBattles = (battles?.length ?? 0) > 0
-  const hasQuests = (quests?.length ?? 0) > 0
+  const hasBattles = activeBattles.length > 0
+  const hasQuests = activeQuests.length > 0
   const empty = !loading && !hasBattles && !hasQuests
 
   return (
@@ -149,7 +155,7 @@ export default function HomePage() {
             ⚔️ {t('home.battles')}
           </h2>
           <div className="space-y-3">
-            {battles?.map((item, i) => {
+            {activeBattles.map((item, i) => {
               const { me, rival } = pick(item.players)
               const myScore = me?.score ?? 0
               const rivalScore = rival?.score ?? 0
@@ -230,7 +236,7 @@ export default function HomePage() {
             </button>
           </div>
           <div className="space-y-3">
-            {quests?.slice(0, 3).map((item, i) => (
+            {activeQuests.slice(0, 3).map((item, i) => (
               <QuestCard key={item.quest.id} item={item} index={i} />
             ))}
           </div>

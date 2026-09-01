@@ -52,7 +52,8 @@
     "title": "Profil",
     "language": "Til",
     "stats": "Statistika",
-    "archive": "Tugallangan battle'lar"
+    "archive": "Tugallangan battle'lar",
+    "archiveEmpty": "Hali tugagan duel yoki missiya yo'q"
   },
   "proof": {
     "title": "Bugungi isbot",
@@ -242,5 +243,27 @@
     "taken": "Bu missiyaning guvohi allaqachon bor",
     "isOwner": "Bu sening missiyang",
     "notFound": "Taklif topilmadi"
+  },
+  "result": {
+    "finished": "Duel yakunlandi",
+    "youWon": "SEN YUTDING!",
+    "youLost": "Bu safar yutqazding",
+    "draw": "Durang",
+    "won": "Yutdi",
+    "lost": "Yutqazdi",
+    "winnerIs": "G'olib —",
+    "finalScore": "Yakuniy hisob"
+  },
+  "stats": {
+    "won": "Yutgan",
+    "lost": "Yutqazgan",
+    "achieved": "Maqsadga yetgan",
+    "proofs": "Isbot ✓",
+    "reliability": "Tekshiruv ishonchliligi",
+    "reliabilityHint": "{{n}} tadan {{a}} tasini o'zing ko'rib chiqding",
+    "last30": "Oxirgi 30 kun",
+    "totalProofs": "jami {{n}}",
+    "nProofs": "{{n}} ta isbot",
+    "bestDay": "eng ko`p: {{n}} ta/kun"
   }
 }

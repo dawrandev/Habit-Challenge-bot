@@ -52,7 +52,8 @@
     "title": "Profil",
     "language": "Dil",
     "stats": "İstatistik",
-    "archive": "Biten düellolar"
+    "archive": "Biten düellolar",
+    "archiveEmpty": "Henüz biten düello veya görev yok"
   },
   "proof": {
     "title": "Bugünkü kanıt",
@@ -242,5 +243,27 @@
     "taken": "Bu görevin zaten bir tanığı var",
     "isOwner": "Bu senin kendi görevin",
     "notFound": "Davet bulunamadı"
+  },
+  "result": {
+    "finished": "Düello bitti",
+    "youWon": "KAZANDIN!",
+    "youLost": "Bu sefer kaybettin",
+    "draw": "Berabere",
+    "won": "Kazandı",
+    "lost": "Kaybetti",
+    "winnerIs": "Kazanan —",
+    "finalScore": "Son skor"
+  },
+  "stats": {
+    "won": "Galibiyet",
+    "lost": "Mağlubiyet",
+    "achieved": "Hedefe ulaşan",
+    "proofs": "Kanıt ✓",
+    "reliability": "Doğrulama güvenilirliği",
+    "reliabilityHint": "{{n}} taneden {{a}} tanesini inceledin",
+    "last30": "Son 30 gün",
+    "totalProofs": "toplam {{n}}",
+    "nProofs": "{{n}} kanıt",
+    "bestDay": "en iyi: {{n}}/gün"
   }
 }

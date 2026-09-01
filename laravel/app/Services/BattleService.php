@@ -23,6 +23,7 @@ class BattleService
         private readonly ScoringService $scoring,
         private readonly BattleAccess $access,
         private readonly NotificationService $notifications,
+        private readonly BattleClosingService $closing,
     ) {}
 
     /**
@@ -280,13 +281,25 @@ class BattleService
     public function listForUser(User $user): array
     {
         $battleIds = BattleParticipant::where('user_id', $user->id)->pluck('battle_id');
-        $battles = Battle::with(['challenges', 'participants.user'])->whereIn('id', $battleIds)->get();
+        $battles = Battle::with(['challenges', 'participants.user'])
+            ->whereIn('id', $battleIds)
+            ->orderByRaw('CASE WHEN status = ? THEN 0 ELSE 1 END', [BattleStatus::Active->value])
+            ->orderByDesc('id')
+            ->get();
 
-        return $battles->map(fn (Battle $battle) => [
-            'battle' => $battle,
-            'players' => $this->players($battle, $user->id),
-            ...$this->timeLeft($battle),
-        ])->all();
+        return $battles->map(function (Battle $battle) use ($user) {
+            // Muddati o'tganini ro'yxatdayoq yopamiz — arxivga tushib qolsin
+            if ($this->closing->closeIfDue($battle)) {
+                $battle->refresh()->loadMissing(['challenges', 'participants.user']);
+            }
+
+            return [
+                'battle' => $battle,
+                'players' => $this->players($battle, $user->id),
+                'result' => $this->result($battle, $user),
+                ...$this->timeLeft($battle),
+            ];
+        })->all();
     }
 
     /**
@@ -296,12 +309,39 @@ class BattleService
      */
     public function detail(Battle $battle, User $me): array
     {
+        // Davri tugagan bo'lsa shu yerda yopamiz — natija cron'ni kutmasin
+        $this->closing->closeIfDue($battle);
+        $battle->refresh();
         $battle->loadMissing(['challenges', 'participants.user']);
 
         return [
             'battle' => $battle,
             'players' => $this->players($battle, $me->id, withBreakdown: true),
             'challenges' => $battle->challenges,
+            'result' => $this->result($battle, $me),
+            ...$this->timeLeft($battle),
+        ];
+    }
+
+    /**
+     * Yakuniy natija — faqat duel tugagach.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function result(Battle $battle, User $me): ?array
+    {
+        if ($battle->status !== BattleStatus::Finished) {
+            return null;
+        }
+
+        $winner = $battle->winner_id !== null
+            ? $battle->participants->firstWhere('user_id', $battle->winner_id)?->user
+            : null;
+
+        return [
+            'winner' => $winner,
+            'is_draw' => $winner === null,
+            'you_won' => $winner !== null && $winner->id === $me->id,
         ];
     }
 

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
 import AddChallengeModal from '../components/AddChallengeModal'
 import BattleSettingsModal from '../components/BattleSettingsModal'
+import BattleResultCard from '../components/BattleResultCard'
 import {
   useBattle,
   useDeleteChallenge,
@@ -196,6 +197,9 @@ export default function BattlePage() {
   const nameOf = (key: string | null, name: string) =>
     key ? t(`tpl.${key}`) : name || '—'
 
+  // Duel tugagan bo'lsa jonli tablo o'rniga yakuniy natija turadi
+  const finished = data.battle.status !== 'active' && data.result !== null
+
   return (
     <PageTransition>
       <header className="flex items-center justify-between px-5 pt-6 pb-4">
@@ -206,14 +210,16 @@ export default function BattlePage() {
           <h1 className="font-display text-2xl">{data.battle.title}</h1>
         </div>
         <div className="flex items-center gap-2">
-          <div className="rounded-full border border-line bg-surface px-3 py-1.5 text-right">
-            <p className="text-[10px] tracking-wide text-muted uppercase">
-              {t('battle.endsIn')}
-            </p>
-            <p className="tabular font-mono text-sm text-you">
-              {t('battle.timeLeft', { d: tl.d, h: tl.h })}
-            </p>
-          </div>
+          {!finished && (
+            <div className="rounded-full border border-line bg-surface px-3 py-1.5 text-right">
+              <p className="text-[10px] tracking-wide text-muted uppercase">
+                {t('battle.endsIn')}
+              </p>
+              <p className="tabular font-mono text-sm text-you">
+                {t('battle.timeLeft', { d: tl.d, h: tl.h })}
+              </p>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => setSettingsOpen(true)}
@@ -225,6 +231,14 @@ export default function BattlePage() {
         </div>
       </header>
 
+      {finished && data.result ? (
+        <BattleResultCard
+          result={data.result}
+          me={me}
+          rival={rival}
+          title={data.battle.title}
+        />
+      ) : (
       <section className="rise-in px-5" style={{ animationDelay: '0.02s' }}>
         <div className="rounded-3xl border border-line bg-surface p-5 shadow-2xl shadow-black/40">
           <div className="flex items-center justify-between gap-2">
@@ -298,9 +312,10 @@ export default function BattlePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Takliflar (pending challenge'lar) */}
-      {data.challenges.some((c) => c.pending) && (
+      {!finished && data.challenges.some((c) => c.pending) && (
         <section className="rise-in px-5 pt-6" style={{ animationDelay: '0.08s' }}>
           <h2 className="mb-2 text-xs tracking-[0.18em] text-muted uppercase">
             🆕 {t('crud.proposals')}
@@ -365,16 +380,18 @@ export default function BattlePage() {
           <h2 className="text-xs tracking-[0.18em] text-muted uppercase">
             {t('battle.byChallenge')}
           </h2>
-          <button
-            type="button"
-            onClick={() => {
-              setEditCh(null)
-              setChOpen(true)
-            }}
-            className="rounded-full bg-you/15 px-3 py-1 text-xs font-semibold text-you transition active:scale-95"
-          >
-            ＋ Challenge
-          </button>
+          {!finished && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditCh(null)
+                setChOpen(true)
+              }}
+              className="rounded-full bg-you/15 px-3 py-1 text-xs font-semibold text-you transition active:scale-95"
+            >
+              ＋ Challenge
+            </button>
+          )}
         </div>
         <div className="divide-y divide-line rounded-2xl border border-line bg-surface px-4">
           {data.challenges.filter((c) => !c.pending).map((ch) => {
@@ -423,7 +440,8 @@ export default function BattlePage() {
         </div>
       </section>
 
-      {/* Bugun kutilyapti */}
+      {/* Bugun kutilyapti — tugagan duelda isbot qabul qilinmaydi */}
+      {!finished && (
       <section className="rise-in px-5 pt-6" style={{ animationDelay: '0.22s' }}>
         <h2 className="mb-2 text-xs tracking-[0.18em] text-muted uppercase">
           {t('battle.expectedToday')}
@@ -483,6 +501,7 @@ export default function BattlePage() {
           )}
         </div>
       </section>
+      )}
 
       <div className="h-6" />
 

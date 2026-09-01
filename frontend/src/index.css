@@ -351,3 +351,35 @@ body {
 .cell-pop {
   animation: cell-pop 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* Natija ekrani — kubok va toj (CSS'da: muhim kontent JS'ga bog'liq bo'lmasin) */
+@keyframes trophy-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.08);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.trophy-pop {
+  animation: trophy-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+@keyframes crown-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) rotate(-18deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.crown-drop {
+  animation: crown-drop 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+}
