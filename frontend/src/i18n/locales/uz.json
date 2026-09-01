@@ -265,5 +265,12 @@
     "totalProofs": "jami {{n}}",
     "nProofs": "{{n}} ta isbot",
     "bestDay": "eng ko`p: {{n}} ta/kun"
+  },
+  "period": {
+    "start": "Boshlanish",
+    "end": "Tugash",
+    "length": "{{n}} kun",
+    "invalid": "Tugash sanasi boshlanishdan oldin",
+    "tooLong": "Eng ko’pi {{max}} kun"
   }
 }

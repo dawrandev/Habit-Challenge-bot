@@ -40,8 +40,8 @@ class ProofNoteDisputeTest extends TestCase
     {
         $this->asTg(self::TG_A)->postJson('/api/battles', [
             'title' => 'Note & Dispute Battle',
-            'period_days' => 7,
-            'start_tomorrow' => false,
+            'start_date' => Clock::todayLocal()->toDateString(),
+            'end_date' => Clock::todayLocal()->addDays(6)->toDateString(),
             'challenges' => [[
                 'name' => 'Pushups',
                 'icon' => '💪',

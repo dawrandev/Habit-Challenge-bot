@@ -43,8 +43,8 @@ class QuestFlowTest extends TestCase
     {
         $this->asTg(self::TG_OWNER)->postJson('/api/quests', [
             'title' => 'Ertalabki yugurish',
-            'period_days' => $periodDays,
-            'start_tomorrow' => false,
+            'start_date' => Clock::todayLocal()->toDateString(),
+            'end_date' => Clock::todayLocal()->addDays($periodDays - 1)->toDateString(),
             'goal_percent' => $goal,
             'challenges' => [[
                 'name' => 'Yugurish',

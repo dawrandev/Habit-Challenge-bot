@@ -7,13 +7,10 @@ import { type ChallengeInput } from '../lib/api'
 import { useCreateQuest } from '../lib/quests'
 import { ICON_SET, TEMPLATES } from '../lib/challenges'
 import { useInviteLink } from '../lib/invite'
-
-const PERIODS = [
-  { days: 7, key: 'd7' },
-  { days: 14, key: 'd14' },
-  { days: 30, key: 'd30' },
-  { days: 60, key: 'd60' },
-]
+import DateRangeField, {
+  type DateRangeValue,
+} from '../components/DateRangeField'
+import { addDaysISO, todayISO } from '../lib/dates'
 
 const GOALS = [50, 70, 80, 90, 100]
 
@@ -23,9 +20,12 @@ export default function NewQuestPage() {
   const create = useCreateQuest()
 
   const [title, setTitle] = useState('')
-  const [period, setPeriod] = useState(30)
+  // Davr aynan sanalar bilan; missiya uchun default — 30 kun
+  const [period, setPeriod] = useState<DateRangeValue>(() => {
+    const start = todayISO()
+    return { start, end: addDaysISO(start, 29) }
+  })
   const [goal, setGoal] = useState(80)
-  const [startTomorrow, setStartTomorrow] = useState(false)
   const [items, setItems] = useState<ChallengeInput[]>([])
   const [custom, setCustom] = useState('')
   const [customIcon, setCustomIcon] = useState<string>('📖')
@@ -106,8 +106,8 @@ export default function NewQuestPage() {
     create.mutate(
       {
         title: title.trim() || t('questCreate.title'),
-        period_days: period,
-        start_tomorrow: startTomorrow,
+        start_date: period.start,
+        end_date: period.end,
         goal_percent: goal,
         challenges: allItems,
       },
@@ -196,27 +196,12 @@ export default function NewQuestPage() {
           />
         </div>
 
-        {/* Davr */}
+        {/* Davr — qachon boshlanadi, qachon tugaydi */}
         <div>
           <label className="mb-2 block text-xs tracking-[0.18em] text-muted uppercase">
             {t('questCreate.period')}
           </label>
-          <div className="flex gap-2">
-            {PERIODS.map((p) => (
-              <button
-                key={p.days}
-                type="button"
-                onClick={() => setPeriod(p.days)}
-                className={`flex-1 rounded-2xl border py-3 text-sm transition ${
-                  period === p.days
-                    ? 'border-you bg-you/10 text-you'
-                    : 'border-line bg-surface text-text'
-                }`}
-              >
-                {t(`questCreate.${p.key}`)}
-              </button>
-            ))}
-          </div>
+          <DateRangeField value={period} onChange={setPeriod} />
         </div>
 
         {/* Maqsad foizi */}
@@ -242,26 +227,6 @@ export default function NewQuestPage() {
           </div>
           <p className="text-xs text-muted">{t('questCreate.goalHint')}</p>
         </div>
-
-        {/* Ertadan boshlash */}
-        <button
-          type="button"
-          onClick={() => setStartTomorrow((v) => !v)}
-          className="flex w-full items-center justify-between rounded-2xl border border-line bg-surface px-4 py-3"
-        >
-          <span className="text-sm">{t('create.startTomorrow')}</span>
-          <span
-            className={`relative h-6 w-11 rounded-full transition ${
-              startTomorrow ? 'bg-you' : 'bg-surface-2'
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${
-                startTomorrow ? 'left-[22px]' : 'left-0.5'
-              }`}
-            />
-          </span>
-        </button>
 
         {/* Odatlar */}
         <div>

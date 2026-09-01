@@ -13,6 +13,7 @@ use App\Models\Quest;
 use App\Models\User;
 use App\Services\Telegram\NotificationService;
 use App\Support\Clock;
+use App\Support\DateRange;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -37,30 +38,28 @@ class QuestService
     public function create(
         User $owner,
         string $title,
-        int $periodDays,
-        bool $startTomorrow,
+        DateRange $period,
         int $goalPercent,
         array $challenges,
     ): Quest {
-        $start = Clock::todayLocal()->addDays($startTomorrow ? 1 : 0);
-        // Inklyuziv davr: 30 kunlik missiya ayni 30 kun (31 emas).
-        $end = $start->addDays(max(1, $periodDays) - 1);
+        $start = $period->start;
 
         $quest = Quest::create([
             'title' => $title,
             'status' => QuestStatus::Active,
             'owner_id' => $owner->id,
             'witness_id' => null,
-            'period_days' => $periodDays,
-            'start_date' => $start->toDateString(),
-            'end_date' => $end->toDateString(),
+            // Sanalardan hosila — ikki manba bo'lsa ajralib ketardi
+            'period_days' => $period->days(),
+            'start_date' => $period->startDate(),
+            'end_date' => $period->endDate(),
             'timezone' => config('telegram.timezone'),
             'goal_percent' => $goalPercent,
             'invite_token' => Str::random(12),
         ]);
 
         foreach ($challenges as $data) {
-            $quest->challenges()->create($this->challengeAttributes($data, $start->toDateString()));
+            $quest->challenges()->create($this->challengeAttributes($data, $period->startDate()));
         }
 
         return $quest->fresh(['challenges']);

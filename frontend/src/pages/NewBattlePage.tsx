@@ -6,12 +6,10 @@ import PageTransition from '../components/PageTransition'
 import { useCreateBattle, type ChallengeInput } from '../lib/api'
 import { ICON_SET, TEMPLATES } from '../lib/challenges'
 import { useInviteLink } from '../lib/invite'
-
-const PERIODS = [
-  { days: 7, key: 'week1' },
-  { days: 14, key: 'week2' },
-  { days: 30, key: 'month1' },
-]
+import DateRangeField, {
+  type DateRangeValue,
+} from '../components/DateRangeField'
+import { addDaysISO, todayISO } from '../lib/dates'
 
 export default function NewBattlePage() {
   const { t } = useTranslation()
@@ -19,8 +17,11 @@ export default function NewBattlePage() {
   const create = useCreateBattle()
 
   const [title, setTitle] = useState('')
-  const [period, setPeriod] = useState(7)
-  const [startTomorrow, setStartTomorrow] = useState(true)
+  // Davr endi aynan sanalar bilan (SPEC §3 "erkin sana"); default — 1 hafta
+  const [period, setPeriod] = useState<DateRangeValue>(() => {
+    const start = todayISO()
+    return { start, end: addDaysISO(start, 6) }
+  })
   const [items, setItems] = useState<ChallengeInput[]>([])
   const [custom, setCustom] = useState('')
   const [customIcon, setCustomIcon] = useState<string>('📖')
@@ -93,8 +94,8 @@ export default function NewBattlePage() {
     create.mutate(
       {
         title: title.trim() || t('create.title'),
-        period_days: period,
-        start_tomorrow: startTomorrow,
+        start_date: period.start,
+        end_date: period.end,
         challenges: allItems,
       },
       { onSuccess: (r) => setToken(r.invite_token) },
@@ -172,48 +173,13 @@ export default function NewBattlePage() {
           />
         </div>
 
-        {/* Davr */}
+        {/* Davr — qachon boshlanadi, qachon tugaydi */}
         <div>
           <label className="mb-2 block text-xs tracking-[0.18em] text-muted uppercase">
             {t('create.period')}
           </label>
-          <div className="flex gap-2">
-            {PERIODS.map((p) => (
-              <button
-                key={p.days}
-                type="button"
-                onClick={() => setPeriod(p.days)}
-                className={`flex-1 rounded-2xl border py-3 text-sm transition ${
-                  period === p.days
-                    ? 'border-you bg-you/10 text-you'
-                    : 'border-line bg-surface text-text'
-                }`}
-              >
-                {t(`create.${p.key}`)}
-              </button>
-            ))}
-          </div>
+          <DateRangeField value={period} onChange={setPeriod} />
         </div>
-
-        {/* Ertadan boshlash */}
-        <button
-          type="button"
-          onClick={() => setStartTomorrow((v) => !v)}
-          className="flex w-full items-center justify-between rounded-2xl border border-line bg-surface px-4 py-3"
-        >
-          <span className="text-sm">{t('create.startTomorrow')}</span>
-          <span
-            className={`relative h-6 w-11 rounded-full transition ${
-              startTomorrow ? 'bg-you' : 'bg-surface-2'
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${
-                startTomorrow ? 'left-[22px]' : 'left-0.5'
-              }`}
-            />
-          </span>
-        </button>
 
         {/* Challenge tanlash */}
         <div>

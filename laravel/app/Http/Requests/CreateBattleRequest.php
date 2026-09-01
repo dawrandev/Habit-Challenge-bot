@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Enums\Cadence;
 use App\Enums\ProofType;
+use App\Support\DateRange;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,8 +24,8 @@ class CreateBattleRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:120'],
-            'period_days' => ['required', 'integer', 'min:1', 'max:365'],
-            'start_tomorrow' => ['boolean'],
+            // Davr endi aynan sanalar bilan belgilanadi (SPEC §3 "erkin sana")
+            ...DateRange::rules(),
             'challenges' => ['required', 'array', 'min:1', 'max:8'],
             'challenges.*.template_key' => ['nullable', 'string', 'max:40'],
             'challenges.*.name' => ['nullable', 'string', 'max:120'],

@@ -243,8 +243,9 @@ export function useCreateBattle() {
   return useMutation({
     mutationFn: (vars: {
       title: string
-      period_days: number
-      start_tomorrow: boolean
+      /** Davr aynan sanalar bilan — 'YYYY-MM-DD' (SPEC §3 "erkin sana") */
+      start_date: string
+      end_date: string
       challenges: ChallengeInput[]
     }) =>
       apiFetch<{ battle: Battle; invite_token: string }>('/battles', {

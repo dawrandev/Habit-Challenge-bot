@@ -265,5 +265,12 @@
     "totalProofs": "toplam {{n}}",
     "nProofs": "{{n}} kanıt",
     "bestDay": "en iyi: {{n}}/gün"
+  },
+  "period": {
+    "start": "Başlangıç",
+    "end": "Bitiş",
+    "length": "{{n}} gün",
+    "invalid": "Bitiş başlangıçtan önce",
+    "tooLong": "En fazla {{max}} gün"
   }
 }

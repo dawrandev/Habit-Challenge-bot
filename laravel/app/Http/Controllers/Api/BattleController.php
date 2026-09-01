@@ -10,6 +10,7 @@ use App\Http\Requests\CreateBattleRequest;
 use App\Models\Battle;
 use App\Services\BattleAccess;
 use App\Services\BattleService;
+use App\Support\DateRange;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -27,8 +28,10 @@ class BattleController extends Controller
         $battle = $this->battles->create(
             user: $request->user(),
             title: $request->string('title')->toString(),
-            periodDays: $request->integer('period_days'),
-            startTomorrow: $request->boolean('start_tomorrow', true),
+            period: DateRange::fromStrings(
+                $request->string('start_date')->toString(),
+                $request->string('end_date')->toString(),
+            ),
             challenges: $request->array('challenges'),
         );
 

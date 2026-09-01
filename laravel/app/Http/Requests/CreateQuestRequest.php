@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Enums\Cadence;
 use App\Enums\ProofType;
+use App\Support\DateRange;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,8 +24,7 @@ class CreateQuestRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:120'],
-            'period_days' => ['required', 'integer', 'min:1', 'max:365'],
-            'start_tomorrow' => ['boolean'],
+            ...DateRange::rules(),
             'goal_percent' => ['required', 'integer', 'min:10', 'max:100'],
             'challenges' => ['required', 'array', 'min:1', 'max:8'],
             'challenges.*.template_key' => ['nullable', 'string', 'max:40'],

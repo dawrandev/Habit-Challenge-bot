@@ -265,5 +265,12 @@
     "totalProofs": "{{n}} total",
     "nProofs": "{{n}} proofs",
     "bestDay": "best: {{n}}/day"
+  },
+  "period": {
+    "start": "Starts",
+    "end": "Ends",
+    "length": "{{n}} days",
+    "invalid": "End date is before the start",
+    "tooLong": "Max {{max}} days"
   }
 }

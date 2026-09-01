@@ -34,8 +34,8 @@ class ScoringConsistencyTest extends TestCase
     {
         $this->asTg(self::TG_A)->postJson('/api/battles', [
             'title' => 'Scoring Battle',
-            'period_days' => 14,
-            'start_tomorrow' => false,
+            'start_date' => Clock::todayLocal()->toDateString(),
+            'end_date' => Clock::todayLocal()->addDays(13)->toDateString(),
             'challenges' => $challenges,
         ])->assertStatus(200);
 

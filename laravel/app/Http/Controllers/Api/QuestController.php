@@ -10,6 +10,7 @@ use App\Http\Requests\CreateQuestRequest;
 use App\Http\Requests\UpdateQuestRequest;
 use App\Models\Quest;
 use App\Services\QuestService;
+use App\Support\DateRange;
 use Illuminate\Http\Request;
 
 /**
@@ -32,8 +33,10 @@ class QuestController extends Controller
         $quest = $this->quests->create(
             owner: $request->user(),
             title: $request->string('title')->toString(),
-            periodDays: $request->integer('period_days'),
-            startTomorrow: $request->boolean('start_tomorrow'),
+            period: DateRange::fromStrings(
+                $request->string('start_date')->toString(),
+                $request->string('end_date')->toString(),
+            ),
             goalPercent: $request->integer('goal_percent'),
             challenges: $request->array('challenges'),
         );

@@ -50,8 +50,8 @@ class ChallengeFeatureTest extends TestCase
 
         $response = $this->asTg(self::TG_A)->postJson('/api/battles', [
             'title' => 'Test Battle',
-            'period_days' => 7,
-            'start_tomorrow' => false,
+            'start_date' => Clock::todayLocal()->toDateString(),
+            'end_date' => Clock::todayLocal()->addDays(6)->toDateString(),
             'challenges' => [$challenge],
         ]);
         $response->assertStatus(200);

@@ -13,6 +13,7 @@ use App\Models\Completion;
 use App\Models\User;
 use App\Services\Telegram\NotificationService;
 use App\Support\Clock;
+use App\Support\DateRange;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -29,19 +30,18 @@ class BattleService
     /**
      * @param  array<int, array{template_key: ?string, name: string, icon: string, cadence: string, weekdays: array<int>}>  $challenges
      */
-    public function create(User $user, string $title, int $periodDays, bool $startTomorrow, array $challenges): Battle
+    public function create(User $user, string $title, DateRange $period, array $challenges): Battle
     {
-        $start = Clock::todayLocal()->addDays($startTomorrow ? 1 : 0);
-        // Inklyuziv davr: start..end ikkalasi ham sanaladi, shuning uchun −1.
-        // (Ilgari 7 kunlik duel aslida 8 kun davom etardi.)
-        $end = $start->addDays(max(1, $periodDays) - 1);
+        $start = $period->start;
 
         $battle = Battle::create([
             'title' => $title,
             'status' => BattleStatus::Pending,
-            'period_days' => $periodDays,
-            'start_date' => $start->toDateString(),
-            'end_date' => $end->toDateString(),
+            // `period_days` sanalardan kelib chiqadi — endi u kirish emas,
+            // hosila. Ikki manba bo'lsa ular bir-biridan ajralib ketardi.
+            'period_days' => $period->days(),
+            'start_date' => $period->startDate(),
+            'end_date' => $period->endDate(),
             'timezone' => config('telegram.timezone'),
             'created_by' => $user->id,
             'invite_token' => Str::random(12),

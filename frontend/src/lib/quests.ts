@@ -124,8 +124,9 @@ export type QuestInvitePreview = {
 
 export type QuestInput = {
   title: string
-  period_days: number
-  start_tomorrow: boolean
+  /** Davr aynan sanalar bilan — 'YYYY-MM-DD' */
+  start_date: string
+  end_date: string
   goal_percent: number
   challenges: ChallengeInput[]
 }

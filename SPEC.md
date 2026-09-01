@@ -45,7 +45,12 @@ uchun **webhook domaini kerak emas**.
 - **Konteyner** — ichida ko'p challenge; barcha challenge ballari **bitta umumiy hisobga** qo'shiladi.
 - **1v1** (hozir), lekin model **`battle_participants` pivot** orqali quriladi (guruh battle — keyin).
 - **Belgilangan davr** (fixed): `start_date` + `end_date`. Davr tugagach → g'olib → **arxiv**.
-  - Davr variantlari: **1 hafta / 2 hafta / 1 oy / erkin sana**.
+  - ✅ **Erkin sana** — foydalanuvchi boshlanish va tugash sanasini o'zi tanlaydi
+    (native date picker). 1 hafta / 2 hafta / 1 oy — endi faqat **tezkor yorliq**,
+    ular tugash sanasini boshlanishdan hisoblab qo'yadi.
+  - `period_days` — kirish emas, sanalardan **hosila**. Chegaralar: boshlanish
+    o'tmishda bo'lmaydi, tugash boshlanishdan oldin bo'lmaydi, eng ko'pi 365 kun
+    (`App\Support\DateRange`).
 - **Timezone:** bitta sobit — **Asia/Tashkent (UTC+5)**. Kun 24:00 (Toshkent)da tugaydi.
 
 ### Challenge
