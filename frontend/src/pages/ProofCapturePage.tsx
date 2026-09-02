@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { useSubmitProof } from '../lib/api'
 import { useSubmitQuestProof } from '../lib/quests'
+import GraceBanner from '../components/GraceBanner'
 
 type Phase =
   | 'loading'
@@ -314,6 +315,10 @@ export default function ProofCapturePage() {
             </button>
           </div>
         )}
+
+        {/* Yuborishdan oldingi lahza — isbot qaysi kunga tushishi shu yerda
+            aytilishi kerak, aks holda foydalanuvchi keyin bilib qoladi */}
+        {(phase === 'captured' || phase === 'sending') && <GraceBanner />}
 
         {(phase === 'captured' || phase === 'sending') && (
           <input

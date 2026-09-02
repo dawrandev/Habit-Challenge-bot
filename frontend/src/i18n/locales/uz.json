@@ -272,5 +272,9 @@
     "length": "{{n}} kun",
     "invalid": "Tugash sanasi boshlanishdan oldin",
     "tooLong": "Eng ko’pi {{max}} kun"
+  },
+  "grace": {
+    "title": "Bu hali {{date}} hisoblanadi",
+    "hint": "Kun {{time}} da almashadi — hozir yuborsang kechagi kunga yoziladi"
   }
 }

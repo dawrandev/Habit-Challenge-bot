@@ -402,7 +402,10 @@ class BattleService
      */
     private function timeLeft(Battle $battle): array
     {
-        $end = CarbonImmutable::parse($battle->end_date->toDateString(), config('telegram.timezone'))->addDay();
+        // Duel oxirgi kunning tugashida yopiladi — u esa 04:00 da (Clock)
+        $end = Clock::dayEndsAt(
+            CarbonImmutable::parse($battle->end_date->toDateString(), config('telegram.timezone')),
+        );
         $seconds = max(0, Clock::nowLocal()->diffInSeconds($end, false));
 
         return [

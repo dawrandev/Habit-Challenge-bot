@@ -272,5 +272,9 @@
     "length": "{{n}} gün",
     "invalid": "Bitiş başlangıçtan önce",
     "tooLong": "En fazla {{max}} gün"
+  },
+  "grace": {
+    "title": "Bu hâlâ {{date}} sayılıyor",
+    "hint": "Gün {{time}} de değişir — şimdi gönderilen kanıt o güne yazılır"
   }
 }

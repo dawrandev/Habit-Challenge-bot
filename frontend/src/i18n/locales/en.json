@@ -272,5 +272,9 @@
     "length": "{{n}} days",
     "invalid": "End date is before the start",
     "tooLong": "Max {{max}} days"
+  },
+  "grace": {
+    "title": "This still counts as {{date}}",
+    "hint": "The day rolls over at {{time}} — a proof sent now lands on that day"
   }
 }

@@ -51,7 +51,20 @@ uchun **webhook domaini kerak emas**.
   - `period_days` — kirish emas, sanalardan **hosila**. Chegaralar: boshlanish
     o'tmishda bo'lmaydi, tugash boshlanishdan oldin bo'lmaydi, eng ko'pi 365 kun
     (`App\Support\DateRange`).
-- **Timezone:** bitta sobit — **Asia/Tashkent (UTC+5)**. Kun 24:00 (Toshkent)da tugaydi.
+- **Timezone:** bitta sobit — **Asia/Tashkent (UTC+5)**.
+- **Kun chegarasi:** kun **04:00 da** almashadi, yarim tunda emas
+  (`BATTLE_DAY_START_HOUR`, manba — `App\Support\Clock`).
+  - Sabab hayotiy: odam odatini kechqurun bajaradi va 23:59 da bitta isbot
+    yuborib ulguradi, qolganini yuborayotganda 00:00 bo'lib qoladi. Kalendar
+    bo'yicha bu keyingi kun, lekin odam uchun bu **o'sha kechaning davomi** —
+    uni bajargan ishi uchun jazolash noto'g'ri.
+  - Ya'ni "1-sentabr" kuni 1-sen 04:00 dan 2-sen 04:00 gacha davom etadi.
+  - **Retroaktiv yuborish YO'Q** — bu faqat kechani cho'zish, o'tgan kunni
+    qayta ochish emas (aks holda jonli kamera isbotining ma'nosi qolmasdi).
+  - UI 00:00–04:00 oralig'ida buni **ochiq aytadi** (`GraceBanner`), aks holda
+    telefonda yangi sana turadi-yu isbot kechagi kunga ketadi va bu xato
+    bo'lib ko'rinadi.
+  - Kunlik yopish cron'i shu chegaradan **keyin** yuguradi (04:05).
 
 ### Challenge
 - **Simmetrik:** yaratuvchi taklif qiladi, lekin qabul qilinsa **ikkala o'yinchiga** amal qiladi.

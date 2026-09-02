@@ -369,7 +369,9 @@ class QuestService
      */
     private function timeLeft(Quest $quest): array
     {
-        $end = CarbonImmutable::parse($quest->end_date->toDateString(), config('telegram.timezone'))->addDay();
+        $end = Clock::dayEndsAt(
+            CarbonImmutable::parse($quest->end_date->toDateString(), config('telegram.timezone')),
+        );
         $seconds = max(0, Clock::nowLocal()->diffInSeconds($end, false));
 
         return [

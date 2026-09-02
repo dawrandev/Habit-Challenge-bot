@@ -5,6 +5,7 @@ import PageTransition from '../components/PageTransition'
 import AddChallengeModal from '../components/AddChallengeModal'
 import BattleSettingsModal from '../components/BattleSettingsModal'
 import BattleResultCard from '../components/BattleResultCard'
+import GraceBanner from '../components/GraceBanner'
 import {
   useBattle,
   useDeleteChallenge,
@@ -446,6 +447,7 @@ export default function BattlePage() {
         <h2 className="mb-2 text-xs tracking-[0.18em] text-muted uppercase">
           {t('battle.expectedToday')}
         </h2>
+        <GraceBanner />
         <div className="space-y-2">
           {today?.map((task) => {
             const chip = statusChip(task.status, t)

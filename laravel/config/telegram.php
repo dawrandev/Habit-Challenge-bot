@@ -20,6 +20,11 @@ return [
     // Vaqt mintaqasi (kun oxiri shu bo'yicha) — SPEC §10
     'timezone' => env('BATTLE_TIMEZONE', 'Asia/Tashkent'),
 
+    // Kun necha soatda almashadi. 0 = qat'iy yarim tun; 4 = kechqurun
+    // bajarganlar uchun "cho'zilgan kecha" (00:00–04:00 hali kechagi kun).
+    // Batafsil: App\Support\Clock.
+    'day_start_hour' => (int) env('BATTLE_DAY_START_HOUR', 4),
+
     // Scoring — SPEC §4
     'scoring' => [
         'points_per_completion' => (float) env('SCORE_POINTS', 1.0),

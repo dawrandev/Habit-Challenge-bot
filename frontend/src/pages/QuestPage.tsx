@@ -12,6 +12,7 @@ import { pct } from '../components/charts/state'
 import { useVerify, useVerifyQueue, type QueueItem } from '../lib/api'
 import { useQuest, useQuestToday } from '../lib/quests'
 import QuestSettingsModal from '../components/QuestSettingsModal'
+import GraceBanner from '../components/GraceBanner'
 
 function Section({
   title,
@@ -292,6 +293,7 @@ export default function QuestPage() {
       {/* EGA UCHUN — bugungi vazifalar */}
       {isOwner && !finished && (
         <Section title={t('quest.expectedToday')} delay="0.12s">
+          <GraceBanner />
           <div className="space-y-2">
             {today?.map((task) => {
               const done =
