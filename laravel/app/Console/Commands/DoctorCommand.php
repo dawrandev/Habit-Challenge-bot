@@ -95,7 +95,18 @@ class DoctorCommand extends Command
 
         $me = $client->getMe();
         if (! ($me['ok'] ?? false)) {
-            $this->bad('Bot tokeni ishlamadi', 'Token noto\'g\'ri yoki internetga chiqib bo\'lmadi');
+            // Tarmoq uzilishi va noto'g'ri token — butunlay boshqa muammo.
+            // Ularni bir xil deb aytish tuzatishni qiyinlashtirardi.
+            $error = (string) ($me['error'] ?? '');
+
+            if (str_contains($error, 'resolve host') || str_contains($error, 'Connection')) {
+                $this->bad(
+                    'Telegram\'ga ulanib bo\'lmadi — server internetsiz yoki DNS ishlamayapti',
+                    'Tekshir: ping api.telegram.org  ·  cat /etc/resolv.conf',
+                );
+            } else {
+                $this->bad('Bot tokeni ishlamadi', 'BotFather bergan tokenni .env da tekshir');
+            }
 
             return null;
         }

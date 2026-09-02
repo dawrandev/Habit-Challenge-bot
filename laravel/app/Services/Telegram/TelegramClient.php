@@ -85,9 +85,14 @@ class TelegramClient
 
     public function getFilePath(string $fileId): ?string
     {
-        $response = Http::get($this->method('getFile'), ['file_id' => $fileId]);
+        try {
+            return Http::get($this->method('getFile'), ['file_id' => $fileId])
+                ->json('result.file_path');
+        } catch (\Throwable $e) {
+            $this->logFailure('getFile', $e);
 
-        return $response->json('result.file_path');
+            return null;
+        }
     }
 
     public function downloadFile(string $filePath): string
@@ -102,12 +107,12 @@ class TelegramClient
             $payload['secret_token'] = $secret;
         }
 
-        return (array) Http::asJson()->post($this->method('setWebhook'), $payload)->json();
+        return $this->call(fn () => Http::asJson()->post($this->method('setWebhook'), $payload)->json(), 'setWebhook');
     }
 
     public function getMe(): array
     {
-        return (array) Http::get($this->method('getMe'))->json();
+        return $this->call(fn () => Http::get($this->method('getMe'))->json(), 'getMe');
     }
 
     /**
@@ -117,7 +122,12 @@ class TelegramClient
      */
     public function getWebhookInfo(): array
     {
-        return (array) Http::get($this->method('getWebhookInfo'))->json('result', []);
+        $result = $this->call(
+            fn () => ['ok' => true, 'result' => Http::get($this->method('getWebhookInfo'))->json('result', [])],
+            'getWebhookInfo',
+        );
+
+        return (array) ($result['result'] ?? []);
     }
 
     /**
@@ -125,12 +135,55 @@ class TelegramClient
      */
     public function setMenuButton(string $text, string $url): array
     {
-        return (array) Http::asJson()->post($this->method('setChatMenuButton'), [
+        return $this->call(fn () => Http::asJson()->post($this->method('setChatMenuButton'), [
             'menu_button' => [
                 'type' => 'web_app',
                 'text' => $text,
                 'web_app' => ['url' => $url],
             ],
-        ])->json();
+        ])->json(), 'setChatMenuButton');
+    }
+
+    /**
+     * Telegram chaqiruvini xavfsiz bajaradi.
+     *
+     * Tarmoq uzilishi ISTISNO EMAS, kutilgan holat: server DNS'siz qolishi
+     * mumkin. Diagnostika buyrug'i shunday paytda muammoni XABAR QILISHI
+     * kerak, qulab tushmasligi.
+     *
+     * @param  callable(): mixed  $request
+     * @return array<string, mixed>
+     */
+    private function call(callable $request, string $method): array
+    {
+        try {
+            return (array) $request();
+        } catch (\Throwable $e) {
+            $this->logFailure($method, $e);
+
+            return ['ok' => false, 'error' => $this->safeMessage($e)];
+        }
+    }
+
+    private function logFailure(string $method, \Throwable $e): void
+    {
+        Log::warning("telegram.{$method} failed", ['error' => $this->safeMessage($e)]);
+    }
+
+    /**
+     * Xato matnidan bot TOKENINI olib tashlaydi.
+     *
+     * Guzzle xatosi to'liq URL'ni qaytaradi, unda esa token bor — u log'ga
+     * yoki ekranga tushsa oshkor bo'ladi.
+     */
+    private function safeMessage(\Throwable $e): string
+    {
+        $message = $e->getMessage();
+
+        if ($this->token !== '') {
+            $message = str_replace($this->token, '***', $message);
+        }
+
+        return preg_replace('/bot\d+:[A-Za-z0-9_-]+/', 'bot***', $message) ?? 'xato';
     }
 }
