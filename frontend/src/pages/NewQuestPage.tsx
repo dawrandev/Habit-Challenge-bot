@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
+import RemindTimeField from '../components/RemindTimeField'
 import { type ChallengeInput } from '../lib/api'
 import { useCreateQuest } from '../lib/quests'
 import { ICON_SET, TEMPLATES } from '../lib/challenges'
@@ -84,6 +85,10 @@ export default function NewQuestPage() {
 
   function setDescription(idx: number, description: string) {
     setItems((cur) => cur.map((c, i) => (i === idx ? { ...c, description } : c)))
+  }
+
+  function setRemind(idx: number, remind_at: string | null) {
+    setItems((cur) => cur.map((c, i) => (i === idx ? { ...c, remind_at } : c)))
   }
 
   function toggleDay(idx: number, day: number) {
@@ -356,6 +361,13 @@ export default function NewQuestPage() {
                 ))}
               </div>
             )}
+            <div className="mt-3">
+              <RemindTimeField
+                value={c.remind_at}
+                onChange={(v) => setRemind(idx, v)}
+                templateKey={c.template_key}
+              />
+            </div>
           </div>
         ))}
 

@@ -31,6 +31,7 @@ class AddChallengeRequest extends FormRequest
             'proof_type' => ['nullable', Rule::enum(ProofType::class)],
             'weekdays' => ['array'],
             'weekdays.*' => ['integer', 'between:0,6'],
+            'remind_at' => ['nullable', 'date_format:H:i'],
         ];
     }
 }

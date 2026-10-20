@@ -345,5 +345,21 @@
     "planTotal": "Davr bo'yicha jami {{total}} ta odat. {{limit}} ta yoki kam bajargan jazolanadi",
     "inviteClosed": "Bu taklif endi ochiq emas",
     "tapToClose": "Davom etish uchun bos"
+  },
+  "remind": {
+    "add": "Eslatma vaqtini qo'shish",
+    "optional": "ixtiyoriy",
+    "label": "Eslatma",
+    "remove": "Eslatmani o'chirish",
+    "hint": "Har kuni {{time}} da bot eslatadi"
+  },
+  "late": {
+    "title": "Kechagi hisobotlar",
+    "hint": "Bajargan bo'lsang — bugun kun oxirigacha yubor, ochko qaytadi",
+    "yesterday": "Kecha",
+    "send": "Yuborish",
+    "proofFor": "Kechagi kun ({{date}}) uchun isbot",
+    "lastDay": "Kechagilar kuni",
+    "proofTitle": "Kechagi isbot"
   }
 }

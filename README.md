@@ -139,6 +139,10 @@ TELEGRAM_WEBHOOK_SECRET=<tasodifiy satr>
 TELEGRAM_WEBAPP_URL=https://sizning-domeningiz
 TELEGRAM_ALLOW_DEV_AUTH=false  # ⚠️ PROD'DA ALBATTA false
 BATTLE_TIMEZONE=Asia/Tashkent
+# Ixtiyoriy (standart qiymatlar ko'rsatilgan) — SPEC §18
+REMINDER_EVENING_AT=23:00      # bugungi yuborilmaganlar eslatmasi
+REMINDER_LATE_AT=10:00         # kecha yuborilmaganlar eslatmasi
+LATE_PROOF_DAYS=1              # necha kun orqaga isbot yuborsa bo'ladi
 ```
 
 ### 4. Cron (kunlik yopish shart)
@@ -148,12 +152,14 @@ Ballar, o'tkazib yuborilgan kunlar va missiya natijasi shu yerda hisoblanadi:
 ```
 - `battle:close-day` — har kuni 00:05 (Toshkent): duel g'olibi + missiya natijasi
 - `battle:auto-approve` — har soatda: 24s tekshirilmagan isbotlarni avtomatik tasdiqlash
+- `battle:remind` — har daqiqa: odat vaqtidagi, kechki (23:00) va ertalabki (10:00) eslatmalar
 
 ## Holat
 
-**Tayyor:** ⚔️ Duel (ball, tug-of-war, g'olib) · 🤝 Garov (yutuq/jazo kelishuvi, 50% jazo chizig'i — SPEC §17) · 🎯 Missiya (guvoh, maqsad foizi, 5 chart) ·
+**Tayyor:** ⚔️ Duel (ball, tug-of-war, g'olib) · 🤝 Garov (yutuq/jazo kelishuvi, 50% jazo chizig'i — SPEC §17) ·
+⏰ Eslatmalar + 🕊 kechagi hisobot (SPEC §18) · 🎯 Missiya (guvoh, maqsad foizi, 5 chart) ·
 jonli kamera isbot · inson tekshiruvi + 24s auto-tasdiq · nizo · chat · deep-link taklif ·
 4 til · Arena dizayn.
 
-**Keyingi:** eslatmalar (SPEC §7 — 20:00/22:00, tinch soatlar) · duel natija ekrani + arxiv +
+**Keyingi:** tekshiruv eslatmasi (SPEC §7) · duel natija ekrani + arxiv +
 rematch · quit=forfeit · bot xabarlarining i18n'i (hozir qattiq kodlangan o'zbekcha).

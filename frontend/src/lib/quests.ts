@@ -111,6 +111,8 @@ export type QuestDetail = {
   stats: QuestStats
   days_left: number
   hours_left: number
+  /** Davr tugagan, lekin kechagi hisobotlar uchun hali ochiq (SPEC §18) */
+  late_day?: boolean
 }
 
 export type QuestInvitePreview = {
@@ -208,14 +210,18 @@ export function useAcceptQuestInvite() {
 export function useSubmitQuestProof(questId: number | string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (vars: { challengeId: number; blob: Blob; note?: string }) => {
+    mutationFn: (vars: { challengeId: number; blob: Blob; note?: string; day?: string }) => {
       const fd = new FormData()
       fd.append('challenge_id', String(vars.challengeId))
       fd.append('file', vars.blob, 'proof.jpg')
       if (vars.note?.trim()) fd.append('note', vars.note.trim())
+      if (vars.day) fd.append('day', vars.day)
       return apiFetch('/completions', { method: 'POST', body: fd })
     },
-    onSuccess: () => invalidateQuest(qc, questId),
+    onSuccess: () => {
+      invalidateQuest(qc, questId)
+      qc.invalidateQueries({ queryKey: ['late-tasks'] })
+    },
   })
 }
 

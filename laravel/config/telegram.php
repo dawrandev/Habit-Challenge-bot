@@ -34,4 +34,16 @@ return [
 
     // Tekshiruv deadline (soat) — SPEC §5, §11
     'verify_deadline_hours' => (int) env('VERIFY_DEADLINE_HOURS', 24),
+
+    // Necha kun orqaga isbot yuborsa bo'ladi (1 = kecha) — SPEC §18.
+    // Duel/missiya ham shuncha kun kech yopiladi.
+    'late_proof_days' => (int) env('LATE_PROOF_DAYS', 1),
+
+    // Eslatmalar — SPEC §18. Vaqtlar Toshkent bo'yicha 'HH:MM'.
+    'reminders' => [
+        'evening_at' => env('REMINDER_EVENING_AT', '23:00'),  // bugungi yuborilmaganlar
+        'late_at' => env('REMINDER_LATE_AT', '10:00'),        // kecha yuborilmaganlar
+        // Cron bir necha daqiqa ishlamay qolsa ham eslatma shu oralig'da yetkaziladi
+        'window_minutes' => (int) env('REMINDER_WINDOW_MINUTES', 120),
+    ],
 ];

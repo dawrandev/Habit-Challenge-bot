@@ -337,12 +337,13 @@ class BattleStakesTest extends TestCase
         $this->acceptAsB($battle);
         $this->agreeOnCreatorStakes($battle);
 
-        // Davrni o'tmishga suramiz: kecha tugagan 10 kunlik duel
+        // Davrni o'tmishga suramiz: oldingi kuni tugagan 10 kunlik duel
+        // (kechagi hisobot oynasi ham o'tgan — SPEC §18)
         $today = Clock::todayLocal();
-        $start = $today->subDays(10);
+        $start = $today->subDays(11);
         $battle->update([
             'start_date' => $start->toDateString(),
-            'end_date' => $today->subDay()->toDateString(),
+            'end_date' => $today->subDays(2)->toDateString(),
         ]);
         $challenge = $battle->challenges()->firstOrFail();
         $challenge->update(['start_date' => $start->toDateString()]);
@@ -382,10 +383,10 @@ class BattleStakesTest extends TestCase
 
         $today = Clock::todayLocal();
         $battle->update([
-            'start_date' => $today->subDays(3)->toDateString(),
-            'end_date' => $today->subDay()->toDateString(),
+            'start_date' => $today->subDays(4)->toDateString(),
+            'end_date' => $today->subDays(2)->toDateString(),
         ]);
-        $battle->challenges()->update(['start_date' => $today->subDays(3)->toDateString()]);
+        $battle->challenges()->update(['start_date' => $today->subDays(4)->toDateString()]);
 
         app(BattleClosingService::class)->runDailyClose();
 

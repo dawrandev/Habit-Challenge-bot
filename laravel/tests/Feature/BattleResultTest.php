@@ -37,8 +37,8 @@ class BattleResultTest extends TestCase
     }
 
     /**
-     * Davri KECHA tugagan, lekin hali `active` turgan duel yaratadi —
-     * ya'ni cron hali yugurmagan holat.
+     * Davri OLDINGI KUNI tugagan (kechagi hisobot oynasi ham o'tgan — SPEC §18),
+     * lekin hali `active` turgan duel yaratadi — ya'ni cron hali yugurmagan holat.
      *
      * @return array{battle: Battle, me: User, rival: User}
      */
@@ -48,14 +48,14 @@ class BattleResultTest extends TestCase
         $rival = User::create(['telegram_id' => self::TG_RIVAL, 'first_name' => 'Raqib']);
 
         $today = Clock::todayLocal();
-        $start = $today->subDays(8);
+        $start = $today->subDays(9);
 
         $battle = Battle::create([
             'title' => 'Tugagan duel',
             'status' => BattleStatus::Active,   // cron hali tegmagan
             'period_days' => 7,
             'start_date' => $start->toDateString(),
-            'end_date' => $today->subDay()->toDateString(),
+            'end_date' => $today->subDays(2)->toDateString(),
             'timezone' => config('telegram.timezone'),
             'created_by' => $me->id,
             'invite_token' => Str::random(12),

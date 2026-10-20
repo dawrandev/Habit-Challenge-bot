@@ -112,6 +112,12 @@ class Quest extends Model implements ProofContext
         return $this->roleOf($userId) !== null;
     }
 
+    public function coversDay(string $day): bool
+    {
+        return $day >= $this->start_date->toDateString()
+            && $day <= $this->end_date->toDateString();
+    }
+
     /** Faqat ega bajaradi — missiyaning butun mohiyati shu. */
     public function canSubmit(int $userId): bool
     {

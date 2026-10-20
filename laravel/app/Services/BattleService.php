@@ -64,6 +64,7 @@ class BattleService
                 'cadence' => $data['cadence'] ?? Cadence::Daily->value,
                 'weekdays' => $data['weekdays'] ?? [],
                 'proof_type' => $data['proof_type'] ?? 'camera',
+                'remind_at' => $data['remind_at'] ?? null,
                 'start_date' => $start->toDateString(),
                 // battle boshidagilar — ikkalasi qabul qilgan (pending emas)
             ]);
@@ -95,6 +96,7 @@ class BattleService
             'cadence' => $data['cadence'] ?? Cadence::Daily->value,
             'weekdays' => $data['weekdays'] ?? [],
             'proof_type' => $data['proof_type'] ?? 'camera',
+            'remind_at' => $data['remind_at'] ?? null,
             'start_date' => $start->toDateString(),
             'pending' => true,             // taklif — do'st qabul qilmaguncha
             'proposed_by' => $user->id,
@@ -240,6 +242,8 @@ class BattleService
             'cadence' => $data['cadence'] ?? $challenge->cadence->value,
             'weekdays' => $data['weekdays'] ?? $challenge->weekdays,
             'proof_type' => $data['proof_type'] ?? $challenge->proof_type->value,
+            // Kalit kelgan bo'lsa null ham qiymat — eslatmani olib tashlash
+            'remind_at' => array_key_exists('remind_at', $data) ? $data['remind_at'] : $challenge->remind_at,
         ]);
 
         return $challenge;
@@ -417,6 +421,11 @@ class BattleService
         }
 
         $today = Clock::todayLocal();
+        // Davrdan tashqari (masalan, oxirgi kundan keyingi "kechagilar" kuni)
+        if (! $battle->coversDay($today->toDateString())) {
+            return [];
+        }
+
         $out = [];
 
         foreach ($battle->challenges()->where('active', true)->where('pending', false)->get() as $challenge) {
@@ -492,7 +501,7 @@ class BattleService
     }
 
     /**
-     * @return array{days_left: int, hours_left: int}
+     * @return array{days_left: int, hours_left: int, late_day: bool}
      */
     private function timeLeft(Battle $battle): array
     {
@@ -505,6 +514,9 @@ class BattleService
         return [
             'days_left' => intdiv((int) $seconds, 86400),
             'hours_left' => intdiv((int) $seconds % 86400, 3600),
+            // Davr tugagan, lekin kechagi hisobotlar uchun hali ochiq (SPEC §18)
+            'late_day' => $battle->status->isOpen()
+                && Clock::todayLocal()->toDateString() > $battle->end_date->toDateString(),
         ];
     }
 }

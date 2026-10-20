@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
+import LateTasks from '../components/LateTasks'
 import { QuestCard } from './QuestsPage'
 import { useBattles, type PlayerScore } from '../lib/api'
 import { useQuests } from '../lib/quests'
@@ -123,6 +124,9 @@ export default function HomePage() {
           ＋ {t('home.new')}
         </button>
       </header>
+
+      {/* Kecha unutilgan hisobotlar — eng ko'zga ko'rinadigan joyda */}
+      <LateTasks className="pb-5" />
 
       {loading && (
         <div className="grid place-items-center py-16 text-muted">

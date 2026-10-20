@@ -6,6 +6,7 @@ import AddChallengeModal from '../components/AddChallengeModal'
 import BattleSettingsModal from '../components/BattleSettingsModal'
 import BattleResultCard from '../components/BattleResultCard'
 import GraceBanner from '../components/GraceBanner'
+import LateTasks from '../components/LateTasks'
 import StakesCard from '../components/StakesCard'
 import StakesNegotiation from '../components/StakesNegotiation'
 import {
@@ -226,7 +227,12 @@ export default function BattlePage() {
           <h1 className="font-display text-2xl">{data.battle.title}</h1>
         </div>
         <div className="flex items-center gap-2">
-          {!finished && !negotiating && (
+          {!finished && !negotiating && data.late_day && (
+            <div className="rounded-full border border-witness/40 bg-witness/10 px-3 py-1.5 text-xs text-witness">
+              🕊 {t('late.lastDay')}
+            </div>
+          )}
+          {!finished && !negotiating && !data.late_day && (
             <div className="rounded-full border border-line bg-surface px-3 py-1.5 text-right">
               <p className="text-[10px] tracking-wide text-muted uppercase">
                 {t('battle.endsIn')}
@@ -474,8 +480,13 @@ export default function BattlePage() {
         </div>
       </section>
 
-      {/* Bugun kutilyapti — tugagan yoki hali boshlanmagan duelda isbot qabul qilinmaydi */}
+      {/* Kecha unutilganlar — bugun ham yuborsa bo'ladi (SPEC §18) */}
       {!finished && !negotiating && (
+        <LateTasks context={{ key: 'battle', id: data.battle.id }} className="pt-6" />
+      )}
+
+      {/* Bugun kutilyapti — tugagan yoki hali boshlanmagan duelda isbot qabul qilinmaydi */}
+      {!finished && !negotiating && !data.late_day && (
       <section className="rise-in px-5 pt-6" style={{ animationDelay: '0.22s' }}>
         <h2 className="mb-2 text-xs tracking-[0.18em] text-muted uppercase">
           {t('battle.expectedToday')}
@@ -505,6 +516,11 @@ export default function BattlePage() {
                   <span className="text-lg">{task.challenge.icon}</span>
                   <span className="flex-1 text-sm">
                     {nameOf(task.challenge.template_key, task.challenge.name)}
+                    {task.challenge.remind_at && (
+                      <span className="tabular ml-2 font-mono text-[11px] text-muted">
+                        ⏰ {task.challenge.remind_at}
+                      </span>
+                    )}
                   </span>
                 </button>
                 {rejected && task.completion_id ? (

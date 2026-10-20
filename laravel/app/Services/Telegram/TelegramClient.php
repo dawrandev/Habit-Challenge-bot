@@ -71,16 +71,21 @@ class TelegramClient
             return;
         }
 
-        Http::asJson()->post($this->method('sendMessage'), [
-            'chat_id' => $chatId,
-            'text' => $text,
-            'parse_mode' => 'HTML',
-            'reply_markup' => [
-                'inline_keyboard' => [[
-                    ['text' => $buttonText, 'web_app' => ['url' => $url]],
-                ]],
-            ],
-        ]);
+        // Eslatmalar ham shu yo'ldan ketadi — tarmoq uzilishi cron'ni yiqitmasin
+        try {
+            Http::asJson()->post($this->method('sendMessage'), [
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'HTML',
+                'reply_markup' => [
+                    'inline_keyboard' => [[
+                        ['text' => $buttonText, 'web_app' => ['url' => $url]],
+                    ]],
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('telegram.sendWebApp failed', ['error' => $e->getMessage()]);
+        }
     }
 
     public function getFilePath(string $fileId): ?string

@@ -22,6 +22,8 @@ class SubmitCompletionRequest extends FormRequest
             'challenge_id' => ['required', 'integer', 'exists:challenges,id'],
             'file' => ['required', 'image', 'max:8192'], // 8MB
             'note' => ['nullable', 'string', 'max:280'],
+            // Kechagi hisobot (SPEC §18); yo'q bo'lsa — bugun
+            'day' => ['nullable', 'date_format:Y-m-d'],
         ];
     }
 }

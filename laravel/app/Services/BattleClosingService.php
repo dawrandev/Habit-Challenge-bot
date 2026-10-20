@@ -13,6 +13,7 @@ use App\Models\BattleParticipant;
 use App\Models\Completion;
 use App\Services\Telegram\NotificationService;
 use App\Support\Clock;
+use App\Support\LateWindow;
 use Carbon\CarbonImmutable;
 
 /**
@@ -105,15 +106,17 @@ class BattleClosingService
 
     /**
      * Davri tugagan battle'larni yakunlaydi, g'olibni aniqlaydi — SPEC §4.
+     *
+     * Oxirgi kundan keyin yana kechagi hisobot oynasi (SPEC §18) kutiladi:
+     * oxirgi kuni bajarib, yuborishni unutgan ham ulgursin.
      */
     public function finishDue(): int
     {
-        $today = Clock::todayLocal();
         $count = 0;
 
         $battles = Battle::with(['challenges', 'participants.user'])
             ->where('status', BattleStatus::Active->value)
-            ->whereDate('end_date', '<', $today->toDateString())
+            ->whereDate('end_date', '<', LateWindow::earliestOpenDay()->toDateString())
             ->get();
 
         foreach ($battles as $battle) {
@@ -136,7 +139,7 @@ class BattleClosingService
             return false;
         }
 
-        if ($battle->end_date->toDateString() >= Clock::todayLocal()->toDateString()) {
+        if (! LateWindow::isPast($battle->end_date->toDateString())) {
             return false;
         }
 
@@ -155,6 +158,8 @@ class BattleClosingService
      */
     private function close(Battle $battle): void
     {
+        Completion::approvePendingOnClose($battle->challenges->pluck('id')->all());
+
         if ($battle->participants->count() === 2) {
             [$a, $b] = [$battle->participants[0], $battle->participants[1]];
 

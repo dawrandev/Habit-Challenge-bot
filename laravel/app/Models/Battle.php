@@ -126,6 +126,12 @@ class Battle extends Model implements ProofContext
         return $this->participants()->where('user_id', $userId)->exists();
     }
 
+    public function coversDay(string $day): bool
+    {
+        return $day >= $this->start_date->toDateString()
+            && $day <= $this->end_date->toDateString();
+    }
+
     /** Duelda simmetrik: har ikkala ishtirokchi bajaradi. */
     public function canSubmit(int $userId): bool
     {

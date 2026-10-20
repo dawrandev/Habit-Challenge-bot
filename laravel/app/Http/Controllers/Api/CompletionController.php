@@ -9,6 +9,7 @@ use App\Http\Requests\SubmitCompletionRequest;
 use App\Http\Requests\VerifyRequest;
 use App\Services\CompletionService;
 use App\Services\DisputeService;
+use App\Services\DueTaskService;
 use App\Services\VerificationService;
 use Illuminate\Http\Request;
 
@@ -28,6 +29,7 @@ class CompletionController extends Controller
             contents: $request->file('file')->get(),
             filename: 'proof.jpg',
             note: $request->filled('note') ? trim((string) $request->input('note')) : null,
+            day: $request->filled('day') ? (string) $request->input('day') : null,
         );
     }
 
@@ -47,6 +49,12 @@ class CompletionController extends Controller
         $this->disputes->open($request->user(), (int) $completion);
 
         return ['ok' => true];
+    }
+
+    /** Kechagi kun(lar) uchun hali yuborsa bo'ladigan hisobotlar (SPEC §18). */
+    public function late(Request $request, DueTaskService $tasks)
+    {
+        return $tasks->present($tasks->late($request->user()));
     }
 
     public function queue(Request $request)

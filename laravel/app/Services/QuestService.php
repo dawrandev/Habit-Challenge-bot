@@ -80,6 +80,7 @@ class QuestService
             'cadence' => $data['cadence'] ?? Cadence::Daily->value,
             'weekdays' => $data['weekdays'] ?? [],
             'proof_type' => $data['proof_type'] ?? 'camera',
+            'remind_at' => $data['remind_at'] ?? null,
             'start_date' => $startDate,
             // Missiya challenge'lari kelishuvni talab qilmaydi — odat eganiki,
             // guvohning roziligi shart emas (duelda esa shart).
@@ -336,6 +337,7 @@ class QuestService
             'cadence' => $data['cadence'] ?? $challenge->cadence->value,
             'weekdays' => $data['weekdays'] ?? $challenge->weekdays,
             'proof_type' => $data['proof_type'] ?? $challenge->proof_type->value,
+            'remind_at' => array_key_exists('remind_at', $data) ? $data['remind_at'] : $challenge->remind_at,
         ]);
 
         return $challenge;
@@ -365,7 +367,7 @@ class QuestService
     }
 
     /**
-     * @return array{days_left: int, hours_left: int}
+     * @return array{days_left: int, hours_left: int, late_day: bool}
      */
     private function timeLeft(Quest $quest): array
     {
@@ -377,6 +379,9 @@ class QuestService
         return [
             'days_left' => intdiv((int) $seconds, 86400),
             'hours_left' => intdiv((int) $seconds % 86400, 3600),
+            // Davr tugagan, lekin kechagi hisobotlar uchun hali ochiq (SPEC §18)
+            'late_day' => $quest->status->isOpen()
+                && Clock::todayLocal()->toDateString() > $quest->end_date->toDateString(),
         ];
     }
 }

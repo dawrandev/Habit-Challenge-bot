@@ -78,6 +78,7 @@ Route::middleware(['tg.auth', 'throttle:120,1'])->group(function () {
     Route::post('/completions/{completion}/verify', [CompletionController::class, 'verify']);
     Route::post('/completions/{completion}/dispute', [CompletionController::class, 'dispute']);
     Route::get('/verify-queue', [CompletionController::class, 'queue']);
+    Route::get('/late-tasks', [CompletionController::class, 'late']);
 
     Route::post('/dev/seed', [DevController::class, 'seed']);
 });

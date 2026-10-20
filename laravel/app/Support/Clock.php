@@ -18,8 +18,8 @@ use Carbon\CarbonImmutable;
  * Kalendarga qat'iy amal qilish odamni bajargan ishi uchun jazolardi.
  *
  * Ya'ni "1-sentabr" kuni 1-sentabr 04:00 dan 2-sentabr 04:00 gacha davom
- * etadi. Retroaktiv yuborish YO'Q — bu faqat kechani cho'zish, o'tgan kunni
- * qayta ochish emas (aks holda jonli kamera isbotining ma'nosi qolmasdi).
+ * etadi. Bu faqat kechani cho'zish; kechagi kunga hisobot yuborish — alohida
+ * qoida, App\Support\LateWindow (SPEC §18).
  */
 final class Clock
 {

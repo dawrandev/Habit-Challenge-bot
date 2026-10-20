@@ -31,6 +31,9 @@ interface ProofContext
     /** Foydalanuvchi umuman shu konteynerni ko'ra oladimi. */
     public function hasMember(int $userId): bool;
 
+    /** Shu kun ('Y-m-d') davrga kiradimi — davrdan tashqariga isbot yo'q. */
+    public function coversDay(string $day): bool;
+
     /** Kim isbot yubora oladi (missiyada — faqat ega). */
     public function canSubmit(int $userId): bool;
 

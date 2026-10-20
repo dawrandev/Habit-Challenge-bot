@@ -345,5 +345,21 @@
     "planTotal": "{{total}} habits over the period. {{limit}} or fewer gets the penalty",
     "inviteClosed": "This invite is no longer open",
     "tapToClose": "Tap to continue"
+  },
+  "remind": {
+    "add": "Add a reminder time",
+    "optional": "optional",
+    "label": "Reminder",
+    "remove": "Remove reminder",
+    "hint": "The bot will remind you every day at {{time}}"
+  },
+  "late": {
+    "title": "Yesterday's reports",
+    "hint": "Did it but forgot to send? Send it by the end of today and get the points back",
+    "yesterday": "Yesterday",
+    "send": "Send",
+    "proofFor": "Proof for yesterday ({{date}})",
+    "lastDay": "Catch-up day",
+    "proofTitle": "Yesterday's proof"
   }
 }

@@ -2,6 +2,7 @@
 
 use App\Console\Commands\AutoApproveCommand;
 use App\Console\Commands\CloseDayCommand;
+use App\Console\Commands\RemindCommand;
 use App\Http\Middleware\AuthenticateTelegram;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
@@ -35,6 +36,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Har soatda — 24s o'tgan tekshiruvlarni auto-tasdiq (SPEC §11)
         $schedule->command(AutoApproveCommand::class)->hourly();
+
+        // Eslatmalar (SPEC §18) — har daqiqa; takror yuborishdan reminder_logs saqlaydi
+        $schedule->command(RemindCommand::class)->everyMinute()->withoutOverlapping();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -35,6 +35,7 @@ class CreateQuestRequest extends FormRequest
             'challenges.*.proof_type' => ['nullable', Rule::enum(ProofType::class)],
             'challenges.*.weekdays' => ['array'],
             'challenges.*.weekdays.*' => ['integer', 'between:0,6'],
+            'challenges.*.remind_at' => ['nullable', 'date_format:H:i'],
         ];
     }
 }

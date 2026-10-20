@@ -11,6 +11,7 @@ import DateRangeField, {
 } from '../components/DateRangeField'
 import { addDaysISO, daysBetween, todayISO } from '../lib/dates'
 import StakeInputs from '../components/StakeInputs'
+import RemindTimeField from '../components/RemindTimeField'
 import { stakesFilled } from '../lib/stakes'
 
 /** Standart jazo chegarasi — backend `penalty_threshold` bilan bir xil (SPEC §17). */
@@ -95,6 +96,10 @@ export default function NewBattlePage() {
     setItems((cur) =>
       cur.map((c, i) => (i === idx ? { ...c, description } : c)),
     )
+  }
+
+  function setRemind(idx: number, remind_at: string | null) {
+    setItems((cur) => cur.map((c, i) => (i === idx ? { ...c, remind_at } : c)))
   }
 
   function toggleDay(idx: number, day: number) {
@@ -339,6 +344,13 @@ export default function NewBattlePage() {
                 ))}
               </div>
             )}
+            <div className="mt-3">
+              <RemindTimeField
+                value={c.remind_at}
+                onChange={(v) => setRemind(idx, v)}
+                templateKey={c.template_key}
+              />
+            </div>
           </div>
         ))}
 

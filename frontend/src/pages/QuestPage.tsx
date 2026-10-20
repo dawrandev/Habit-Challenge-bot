@@ -13,6 +13,7 @@ import { useVerify, useVerifyQueue, type QueueItem } from '../lib/api'
 import { useQuest, useQuestToday } from '../lib/quests'
 import QuestSettingsModal from '../components/QuestSettingsModal'
 import GraceBanner from '../components/GraceBanner'
+import LateTasks from '../components/LateTasks'
 
 function Section({
   title,
@@ -116,7 +117,12 @@ export default function QuestPage() {
           <h1 className="truncate font-display text-2xl">{quest.title}</h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {!finished && (
+          {!finished && data.late_day && (
+            <div className="rounded-full border border-witness/40 bg-witness/10 px-3 py-1.5 text-xs text-witness">
+              🕊 {t('late.lastDay')}
+            </div>
+          )}
+          {!finished && !data.late_day && (
             <div className="rounded-full border border-line bg-surface px-3 py-1.5 text-right">
               <p className="text-[10px] tracking-wide text-muted uppercase">
                 {t('battle.endsIn')}
@@ -290,8 +296,13 @@ export default function QuestPage() {
         </Section>
       )}
 
-      {/* EGA UCHUN — bugungi vazifalar */}
+      {/* Kecha unutilganlar — bugun ham yuborsa bo'ladi (SPEC §18) */}
       {isOwner && !finished && (
+        <LateTasks context={{ key: 'quest', id: quest.id }} className="pt-6" />
+      )}
+
+      {/* EGA UCHUN — bugungi vazifalar */}
+      {isOwner && !finished && !data.late_day && (
         <Section title={t('quest.expectedToday')} delay="0.12s">
           <GraceBanner />
           <div className="space-y-2">
@@ -322,6 +333,11 @@ export default function QuestPage() {
                   <span className="text-lg">{task.challenge.icon}</span>
                   <span className="flex-1 text-sm">
                     {nameOf(task.challenge.template_key, task.challenge.name)}
+                    {task.challenge.remind_at && (
+                      <span className="tabular ml-2 font-mono text-[11px] text-muted">
+                        ⏰ {task.challenge.remind_at}
+                      </span>
+                    )}
                   </span>
                   <span
                     className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${chip.cls}`}

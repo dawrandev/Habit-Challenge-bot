@@ -35,6 +35,7 @@ class CreateBattleRequest extends FormRequest
             'challenges.*.proof_type' => ['nullable', Rule::enum(ProofType::class)],
             'challenges.*.weekdays' => ['array'],
             'challenges.*.weekdays.*' => ['integer', 'between:0,6'],
+            'challenges.*.remind_at' => ['nullable', 'date_format:H:i'],
             // Garov (SPEC §17) — ixtiyoriy API darajasida (eski mijozlar), lekin
             // berilsa, ikkala variant ham bo'lishi shart
             'stakes' => ['nullable', 'array'],

@@ -6,9 +6,10 @@ namespace App\Services;
 
 use App\Enums\QuestOutcome;
 use App\Enums\QuestStatus;
+use App\Models\Completion;
 use App\Models\Quest;
 use App\Services\Telegram\NotificationService;
-use App\Support\Clock;
+use App\Support\LateWindow;
 
 /**
  * Davri tugagan missiyalarni yakunlaydi va natijani e'lon qiladi.
@@ -25,14 +26,15 @@ class QuestClosingService
 
     public function finishDue(): int
     {
-        $today = Clock::todayLocal();
-
+        // Oxirgi kundan keyin kechagi hisobot oynasi ham o'tsin (SPEC §18)
         $quests = Quest::with(['challenges', 'owner', 'witness'])
             ->where('status', QuestStatus::Active->value)
-            ->whereDate('end_date', '<', $today->toDateString())
+            ->whereDate('end_date', '<', LateWindow::earliestOpenDay()->toDateString())
             ->get();
 
         foreach ($quests as $quest) {
+            Completion::approvePendingOnClose($quest->challenges->pluck('id')->all());
+
             // Avval yopamiz — shundan keyin statistika oxirgi kunni ham
             // "hal bo'lgan" deb sanaydi (ochiq bugun qolmaydi).
             $quest->status = QuestStatus::Finished;

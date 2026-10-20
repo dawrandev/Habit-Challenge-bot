@@ -74,6 +74,8 @@ export type Challenge = {
   pending?: boolean
   proposed_by?: number | null
   proof_type?: ProofType
+  /** Odat vaqti 'HH:MM' — shu paytda bot eslatadi (SPEC §18) */
+  remind_at?: string | null
 }
 
 /** Jazo chizig'iga nisbatan progress — faqat battle detalida (SPEC §17). */
@@ -143,6 +145,7 @@ export type BattleListItem = {
   prize?: string | null
   days_left: number
   hours_left: number
+  late_day?: boolean
 }
 
 export type BattleDetail = {
@@ -154,6 +157,8 @@ export type BattleDetail = {
   result: BattleResult | null
   days_left: number
   hours_left: number
+  /** Davr tugagan, lekin kechagi hisobotlar uchun hali ochiq (SPEC §18) */
+  late_day?: boolean
 }
 
 export type TodayTask = {
@@ -208,6 +213,21 @@ export const useToday = (id: number | string) =>
     queryFn: () => apiFetch<TodayTask[]>(`/battles/${id}/today`),
   })
 
+/** Kecha bajarib, yuborishni unutganlar — bugun ham yuborsa bo'ladi (SPEC §18). */
+export type LateTask = {
+  context: { key: 'battle' | 'quest'; id: number; title: string }
+  challenge: Challenge
+  day: string
+  status: string | null
+  completion_id: number | null
+}
+
+export const useLateTasks = () =>
+  useQuery({
+    queryKey: ['late-tasks'],
+    queryFn: () => apiFetch<LateTask[]>('/late-tasks'),
+  })
+
 export const useVerifyQueue = () =>
   useQuery({
     queryKey: ['verify-queue'],
@@ -225,16 +245,19 @@ export const useMessages = (id: number | string, enabled = true) =>
 export function useSubmitProof(battleId: number | string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (vars: { challengeId: number; blob: Blob; note?: string }) => {
+    mutationFn: (vars: { challengeId: number; blob: Blob; note?: string; day?: string }) => {
       const fd = new FormData()
       fd.append('challenge_id', String(vars.challengeId))
       fd.append('file', vars.blob, 'proof.jpg')
       if (vars.note?.trim()) fd.append('note', vars.note.trim())
+      // Kechagi kun uchun (SPEC §18); yo'q bo'lsa — bugun
+      if (vars.day) fd.append('day', vars.day)
       return apiFetch('/completions', { method: 'POST', body: fd })
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['today', String(battleId)] })
       qc.invalidateQueries({ queryKey: ['battle', String(battleId)] })
+      qc.invalidateQueries({ queryKey: ['late-tasks'] })
     },
   })
 }
@@ -287,6 +310,7 @@ export type ChallengeInput = {
   weekdays: number[]
   proof_type?: ProofType
   start_tomorrow?: boolean
+  remind_at?: string | null
 }
 
 export function useCreateBattle() {

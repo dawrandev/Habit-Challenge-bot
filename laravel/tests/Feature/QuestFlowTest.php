@@ -359,13 +359,14 @@ class QuestFlowTest extends TestCase
             ->postJson("/api/completions/{$completion->id}/verify", ['approve' => true]);
 
         // Davrni o'tmishga surib, yopish cron'ini yuritamiz
-        $yesterday = Clock::todayLocal()->subDay()->toDateString();
+        // Oxirgi kun — oldingi kuni: kechagi hisobot oynasi ham o'tgan (SPEC §18)
+        $lastDay = Clock::todayLocal()->subDays(2)->toDateString();
         $quest->forceFill([
-            'start_date' => Clock::todayLocal()->subDays(2)->toDateString(),
-            'end_date' => $yesterday,
+            'start_date' => Clock::todayLocal()->subDays(3)->toDateString(),
+            'end_date' => $lastDay,
         ])->save();
-        Completion::query()->update(['day' => $yesterday]);
-        Challenge::query()->update(['start_date' => Clock::todayLocal()->subDays(2)->toDateString()]);
+        Completion::query()->update(['day' => $lastDay]);
+        Challenge::query()->update(['start_date' => Clock::todayLocal()->subDays(3)->toDateString()]);
 
         $this->artisan('battle:close-day')->assertExitCode(0);
 

@@ -28,6 +28,29 @@ class Completion extends Model
         'file_id', 'note', 'submitted_at', 'resolved_at',
     ];
 
+    /**
+     * Yopilish paytida hali tekshirilmagan isbotlarni tasdiqlaydi.
+     *
+     * Oxirgi kun(lar)ning isboti tekshiruvchi ulgurmay qolgani uchun hisobdan
+     * chiqib ketmasin — tekshirmaslik o'yinchining aybi emas (SPEC §5).
+     *
+     * @param  array<int>  $challengeIds
+     */
+    public static function approvePendingOnClose(array $challengeIds): int
+    {
+        if ($challengeIds === []) {
+            return 0;
+        }
+
+        return static::query()
+            ->whereIn('challenge_id', $challengeIds)
+            ->where('status', CompletionStatus::Pending->value)
+            ->update([
+                'status' => CompletionStatus::AutoApproved->value,
+                'resolved_at' => now(),
+            ]);
+    }
+
     protected function casts(): array
     {
         return [

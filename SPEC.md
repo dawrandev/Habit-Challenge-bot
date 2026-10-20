@@ -59,8 +59,8 @@ uchun **webhook domaini kerak emas**.
     bo'yicha bu keyingi kun, lekin odam uchun bu **o'sha kechaning davomi** —
     uni bajargan ishi uchun jazolash noto'g'ri.
   - Ya'ni "1-sentabr" kuni 1-sen 04:00 dan 2-sen 04:00 gacha davom etadi.
-  - **Retroaktiv yuborish YO'Q** — bu faqat kechani cho'zish, o'tgan kunni
-    qayta ochish emas (aks holda jonli kamera isbotining ma'nosi qolmasdi).
+  - Bu faqat kechani cho'zish. O'tgan kunga yuborish — alohida qoida:
+    **faqat kecha** uchun, keyingi kun davomida (§18 "Kechagi hisobot").
   - UI 00:00–04:00 oralig'ida buni **ochiq aytadi** (`GraceBanner`), aks holda
     telefonda yangi sana turadi-yu isbot kechagi kunga ketadi va bu xato
     bo'lib ko'rinadi.
@@ -142,10 +142,9 @@ uchun **webhook domaini kerak emas**.
 hisoboting tasdiq/rad · nizo · battle tugadi · rematch · chat xabari.
 
 **Eslatmalar (reminder):**
-- **Kunlik hisobot eslatmasi:** aqlli — **faqat hali bajarmaganlarga**, kun oxiriga yaqin
-  (**20:00 va 22:00**, Toshkent). *(Shaxsiy eslatma vaqti — v1'da qo'shiladi.)*
-- **Tekshiruv eslatmasi:** deadline yaqinlashganda ("tekshir, N soat qoldi").
-- **Tinch soatlar:** **22:00–08:00** push yo'q (oxirgi eslatma 22:00).
+- ✅ **Amalda — §18:** odat vaqtidagi eslatma, kechki **23:00** va ertalabki **10:00**
+  (kechagilar). Tinch soatlar qo'llanmaydi: 23:00 eslatmasi foydalanuvchi talabi.
+- **Tekshiruv eslatmasi:** deadline yaqinlashganda ("tekshir, N soat qoldi") — keyin.
 
 ---
 
@@ -415,4 +414,37 @@ ular faqat `challenge_id` ga bog'langan.
   `penalized` `battle_participants` ga **muhrlanadi** (keyin challenge o'chirilsa ham o'zgarmaydi).
 - Duel davomida UI ikkala o'yinchi uchun **jazo chizig'i**gacha progressni jonli ko'rsatadi.
 - Yakunda bot xabari va natija ekrani yutuqni va kim jazoga tortilganini aytadi.
+
+---
+
+## 18. ⏰ Eslatmalar va kechagi hisobot
+
+> Muammo (foydalanuvchidan): odatni bajardi, isbot yuborishni unutdi — kun yopildi va
+> ochko yo'qoldi. Reja: [`docs/REMINDERS-PLAN.md`](./docs/REMINDERS-PLAN.md).
+
+### Odat vaqti (ixtiyoriy)
+- Har odatga vaqt qo'yish mumkin (`challenges.remind_at`, `HH:MM`, Toshkent). Majburiy emas.
+- Shu vaqtda bot bajaruvchiga Mini App tugmasi bilan yozadi — faqat bugun navbatda bo'lsa
+  va bugungi isbot hali yuborilmagan bo'lsa. Duelda ikkala o'yinchiga, missiyada egaga.
+- Kelishuv bosqichidagi (§17) duelga eslatma yo'q — u hali boshlanmagan.
+
+### Kechki va ertalabki eslatma
+- **23:00** (`REMINDER_EVENING_AT`): bugungi yuborilmagan (yoki rad etilgan) odatlar bitta xabarda.
+- **10:00** (`REMINDER_LATE_AT`): kecha yuborilmay qolganlar — "bugun ham yuborsa bo'ladi".
+- Hammasi yuborilgan bo'lsa — xabar yo'q.
+
+### Yetkazish kafolati
+- `battle:remind` har daqiqa yuguradi. Eslatma vaqti o'tgandan keyin ham
+  `REMINDER_WINDOW_MINUTES` (120) ichida yetkaziladi — cron qisqa to'xtasa ham yo'qolmaydi.
+- `reminder_logs` (foydalanuvchi × tur × odat × kun — unique) — bir xil eslatma ikki marta ketmaydi.
+
+### Kechagi hisobot
+- **Faqat kecha** uchun (`LATE_PROOF_DAYS=1`) isbot yuborish mumkin — keyingi kun davomida.
+  Faqat o'sha kuni navbatda bo'lgan odatga va faqat hal bo'lmagan kunga
+  (yuborilmagan / o'tkazib yuborilgan / rad etilgan). Tasdiqlangan kunni qayta yozib bo'lmaydi.
+- Tasdiqlansa: o'tkazib yuborilgan kun (−0.5) bajarishga (+1) aylanadi.
+- UI: Asosiy, duel va missiya sahifalarida "🕊 Kechagi hisobotlar"; isbot ekrani kunni aytadi.
+- **Yopilish bir kun kechikadi:** duel/missiya `end_date` dan keyingi kun ham ochiq turadi
+  ("kechagilar kuni" — faqat kechagi hisobot, yangi bugungi vazifa yo'q), so'ng yopiladi.
+  Yopilishda hali tekshirilmagan isbotlar avtomatik tasdiqlanadi (§5 mantiqi).
 

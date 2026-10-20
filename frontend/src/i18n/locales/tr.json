@@ -345,5 +345,21 @@
     "planTotal": "Dönem boyunca toplam {{total}} alışkanlık. {{limit}} veya daha azı ceza alır",
     "inviteClosed": "Bu davet artık açık değil",
     "tapToClose": "Devam etmek için dokun"
+  },
+  "remind": {
+    "add": "Hatırlatma saati ekle",
+    "optional": "isteğe bağlı",
+    "label": "Hatırlatma",
+    "remove": "Hatırlatmayı kaldır",
+    "hint": "Bot her gün {{time}} saatinde hatırlatır"
+  },
+  "late": {
+    "title": "Dünkü raporlar",
+    "hint": "Yaptın ama göndermeyi mi unuttun? Bugün bitmeden gönder, puanlar geri gelsin",
+    "yesterday": "Dün",
+    "send": "Gönder",
+    "proofFor": "Dün ({{date}}) için kanıt",
+    "lastDay": "Telafi günü",
+    "proofTitle": "Dünkü kanıt"
   }
 }

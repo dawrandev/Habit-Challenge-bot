@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import RemindTimeField from './RemindTimeField'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { ICON_SET } from '../lib/challenges'
@@ -34,6 +35,7 @@ export default function AddChallengeModal({
   const [days, setDays] = useState<number[]>([])
   const [proof, setProof] = useState<'camera' | 'screenshot'>('camera')
   const [startTomorrow, setStartTomorrow] = useState(false)
+  const [remindAt, setRemindAt] = useState<string | null>(null)
 
   // edit ochilganda mavjud qiymatlar bilan to'ldirish
   useEffect(() => {
@@ -45,6 +47,7 @@ export default function AddChallengeModal({
       setDays(edit.weekdays ?? [])
       setProof(edit.proof_type === 'screenshot' ? 'screenshot' : 'camera')
       setStartTomorrow(false)
+      setRemindAt(edit.remind_at ?? null)
     } else if (open && !edit) {
       setName('')
       setDescription('')
@@ -53,6 +56,7 @@ export default function AddChallengeModal({
       setDays([])
       setProof('camera')
       setStartTomorrow(false)
+      setRemindAt(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, edit?.id])
@@ -74,6 +78,7 @@ export default function AddChallengeModal({
       weekdays: cadence === 'weekly_days' ? days : [],
       proof_type: proof,
       start_tomorrow: startTomorrow,
+      remind_at: remindAt,
     }
     if (edit) {
       update.mutate({ id: edit.id, data: payload }, { onSuccess: onClose })
@@ -185,6 +190,15 @@ export default function AddChallengeModal({
                 ))}
               </div>
             )}
+
+            {/* Odat vaqti — ixtiyoriy eslatma (SPEC §18) */}
+            <div className="mt-3">
+              <RemindTimeField
+                value={remindAt}
+                onChange={setRemindAt}
+                templateKey={edit?.template_key}
+              />
+            </div>
 
             {/* Boshlanish — bugun yoki ertaga (faqat yangi qo'shishda) */}
             {!edit && (

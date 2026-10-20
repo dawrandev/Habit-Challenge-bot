@@ -27,6 +27,8 @@ export default function ProofCapturePage() {
   const { id, challengeId } = useParams()
   const [params] = useSearchParams()
   const isScreenshot = params.get('type') === 'screenshot'
+  // Kechagi kun uchun isbot (SPEC §18); yo'q bo'lsa — bugun
+  const lateDay = params.get('day') ?? undefined
 
   // Bir xil kamera oqimi ikkala rejimga xizmat qiladi; farq faqat qaysi
   // React Query keshini yangilashda (duel balli vs missiya statistikasi).
@@ -153,6 +155,7 @@ export default function ProofCapturePage() {
         challengeId: Number(challengeId),
         blob: blobRef.current,
         note: note.trim() || undefined,
+        day: lateDay,
       })
       stopCamera()
       setPhase('sent')
@@ -182,9 +185,17 @@ export default function ProofCapturePage() {
         >
           ✕
         </button>
-        <span className="font-display text-lg text-text">{t('proof.title')}</span>
+        <span className="font-display text-lg text-text">
+          {lateDay ? t('late.proofTitle') : t('proof.title')}
+        </span>
         <span className="w-9" />
       </div>
+
+      {lateDay && (
+        <div className="mx-5 mb-3 rounded-2xl border border-witness/40 bg-witness/10 px-4 py-2.5 text-center text-sm text-text">
+          🕊 {t('late.proofFor', { date: lateDay.split('-').reverse().slice(0, 2).join('.') })}
+        </div>
+      )}
 
       {/* Kamera / skrinshot / preview */}
       <div className="relative flex-1 overflow-hidden">
