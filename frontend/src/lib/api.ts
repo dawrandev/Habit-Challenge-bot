@@ -55,6 +55,8 @@ export type Battle = {
   created_by: number
   winner_id: number | null
   invite_token: string
+  /** Jazo chegarasi, % — shu yoki undan kam bajargan jazolanadi (SPEC §17) */
+  penalty_threshold?: number
 }
 
 export type ProofType = 'camera' | 'screenshot'
@@ -74,24 +76,71 @@ export type Challenge = {
   proof_type?: ProofType
 }
 
+/** Jazo chizig'iga nisbatan progress — faqat battle detalida (SPEC §17). */
+export type HabitProgress = {
+  done: number
+  /** Butun davr bo'yicha rejadagi odatlar soni */
+  expected: number
+  /** Jazodan qutulish uchun eng kamida shuncha bajarish kerak */
+  safe_at: number
+  /** Faqat duel tugagach: true — jazoga tortildi */
+  penalized: boolean | null
+}
+
 export type PlayerScore = {
   user: User
   score: number
   breakdown?: Record<string, number>
+  habits?: HabitProgress
   is_me: boolean
 }
+
+// ---- Garov: yutuq va jazo (SPEC §17) ---------------------------------------
+export type StakeKind = 'prize' | 'penalty'
+
+export type StakeOption = {
+  id: number
+  text: string
+  proposed_by: number
+  is_mine: boolean
+}
+
+export type StakeSide = {
+  /** O'zingniki doim birinchi */
+  options: StakeOption[]
+  my_vote: number | null
+  rival_vote: number | null
+  chosen: {
+    id: number
+    text: string
+    proposed_by: number
+    via: 'agreement' | 'coin'
+  } | null
+}
+
+export type StakesState = {
+  threshold: number
+  prize: StakeSide
+  penalty: StakeSide
+}
+
+export type StakeTexts = { prize: string; penalty: string }
 
 /** Yakuniy natija — faqat duel tugagach to'ldiriladi. */
 export type BattleResult = {
   winner: User | null
   is_draw: boolean
   you_won: boolean
+  prize?: string | null
+  penalty?: string | null
 }
 
 export type BattleListItem = {
   battle: Battle
   players: PlayerScore[]
   result: BattleResult | null
+  /** Kelishilgan yutuq (bo'lsa) */
+  prize?: string | null
   days_left: number
   hours_left: number
 }
@@ -100,6 +149,8 @@ export type BattleDetail = {
   battle: Battle
   players: PlayerScore[]
   challenges: Challenge[]
+  /** Garovsiz (eski) duelda — null */
+  stakes: StakesState | null
   result: BattleResult | null
   days_left: number
   hours_left: number
@@ -247,6 +298,7 @@ export function useCreateBattle() {
       start_date: string
       end_date: string
       challenges: ChallengeInput[]
+      stakes: StakeTexts
     }) =>
       apiFetch<{ battle: Battle; invite_token: string }>('/battles', {
         method: 'POST',
@@ -261,6 +313,8 @@ export type InvitePreview = {
   challenges: Challenge[]
   creator: User | null
   already_participant: boolean
+  /** Yaratuvchining variantlari; garovsiz duelda — null */
+  stakes: { threshold: number; prize: string | null; penalty: string | null } | null
 }
 
 export const useInvite = (token: string) =>
@@ -273,9 +327,10 @@ export const useInvite = (token: string) =>
 export function useAcceptInvite() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (token: string) =>
-      apiFetch<{ ok: boolean; battle_id: number }>(`/battles/${token}/accept`, {
+    mutationFn: (vars: { token: string; stakes?: StakeTexts }) =>
+      apiFetch<{ ok: boolean; battle_id: number }>(`/battles/${vars.token}/accept`, {
         method: 'POST',
+        body: JSON.stringify({ stakes: vars.stakes ?? null }),
       }),
     onSuccess: () => {
       // Qo'shilgach: battle aktiv bo'ladi, ishtirokchi qo'shiladi, taklif holati o'zgaradi
@@ -372,3 +427,47 @@ export function useDisputeMut() {
     },
   })
 }
+
+// ---- Garov mutatsiyalari (SPEC §17) ------------------------------------------
+type StakesResponse = { status: string; stakes: StakesState | null; flipped?: number }
+
+function useStakeMutation<V>(
+  battleId: number | string,
+  request: (vars: V) => Promise<StakesResponse>,
+) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: request,
+    onSuccess: (r) => {
+      // Javobni darhol keshga yozamiz — ovoz bosilganda karta kutib turmasin
+      qc.setQueryData<BattleDetail>(['battle', String(battleId)], (old) =>
+        old
+          ? { ...old, stakes: r.stakes, battle: { ...old.battle, status: r.status } }
+          : old,
+      )
+      invalidateBattle(qc, battleId)
+    },
+  })
+}
+
+export const useVoteStake = (battleId: number | string) =>
+  useStakeMutation(battleId, (stakeId: number) =>
+    apiFetch<StakesResponse>(`/battles/${battleId}/stakes/${stakeId}/vote`, {
+      method: 'POST',
+    }),
+  )
+
+export const useFlipStake = (battleId: number | string) =>
+  useStakeMutation(battleId, (kind: StakeKind) =>
+    apiFetch<StakesResponse>(`/battles/${battleId}/stakes/${kind}/coin`, {
+      method: 'POST',
+    }),
+  )
+
+export const useEditStake = (battleId: number | string) =>
+  useStakeMutation(battleId, (vars: { kind: StakeKind; text: string }) =>
+    apiFetch<StakesResponse>(`/battles/${battleId}/stakes/${vars.kind}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ text: vars.text }),
+    }),
+  )

@@ -7,7 +7,9 @@ namespace App\Services;
 use App\Domain\Scoring\WinnerResolver;
 use App\Enums\BattleStatus;
 use App\Enums\CompletionStatus;
+use App\Enums\StakeKind;
 use App\Models\Battle;
+use App\Models\BattleParticipant;
 use App\Models\Completion;
 use App\Services\Telegram\NotificationService;
 use App\Support\Clock;
@@ -22,6 +24,7 @@ class BattleClosingService
         private readonly ScoringService $scoring,
         private readonly WinnerResolver $winnerResolver,
         private readonly NotificationService $notifications,
+        private readonly BattleStakeService $stakes,
     ) {}
 
     /**
@@ -176,10 +179,34 @@ class BattleClosingService
             $b->update(['score' => $scoreB]);
         }
 
+        $this->sealHabits($battle);
+
         $battle->status = BattleStatus::Finished;
         $battle->save();
 
         $this->announce($battle);
+    }
+
+    /**
+     * Odat progressi va jazo holatini muhrlaydi (SPEC §17).
+     *
+     * Jazo faqat garovli duelda — garovsiz duelda kelishilgan jazo yo'q,
+     * shuning uchun `penalized` null qoladi.
+     */
+    private function sealHabits(Battle $battle): void
+    {
+        $rule = $this->stakes->rule($battle);
+        $withStakes = $battle->hasStakes();
+
+        foreach ($battle->participants as $participant) {
+            ['done' => $done, 'expected' => $expected] = $this->scoring->habitProgress($battle, $participant->user_id);
+
+            $participant->update([
+                'habits_done' => $done,
+                'habits_expected' => $expected,
+                'penalized' => $withStakes ? $rule->isPenalized($done, $expected) : null,
+            ]);
+        }
     }
 
     /**
@@ -188,6 +215,8 @@ class BattleClosingService
     private function announce(Battle $battle): void
     {
         $battle->loadMissing('participants.user');
+        $prize = $this->stakes->chosenText($battle, StakeKind::Prize);
+        $penalty = $this->stakes->chosenText($battle, StakeKind::Penalty);
 
         $winner = $battle->winner_id !== null
             ? $battle->participants->firstWhere('user_id', $battle->winner_id)?->user
@@ -203,12 +232,34 @@ class BattleClosingService
                 $text = "🤝 <b>{$battle->title}</b> — durang!\nHech kim yutmadi.";
             } elseif ($winner->id === $user->id) {
                 $text = "🏆 <b>{$battle->title}</b> — SEN YUTDING!\nTabriklaymiz 🔥";
+                if ($prize !== null) {
+                    $text .= "\n\n🎁 Yutug'ing: <b>{$prize}</b>";
+                }
             } else {
                 $text = "🏁 <b>{$battle->title}</b> yakunlandi.\nG'olib: <b>{$winner->first_name}</b>";
+                if ($prize !== null) {
+                    $text .= "\n\n🎁 Kelishilgan yutuq: <b>{$prize}</b> — va'da — qarz 😉";
+                }
             }
+
+            $text .= $this->penaltyLine($battle, $participant, $penalty);
 
             $this->notifications->notify([$user->telegram_id], $text);
         }
+    }
+
+    private function penaltyLine(Battle $battle, BattleParticipant $participant, ?string $penalty): string
+    {
+        if ($penalty === null || $participant->penalized === null) {
+            return '';
+        }
+
+        $stat = "{$participant->habits_done}/{$participant->habits_expected}";
+
+        return $participant->penalized
+            ? "\n\n⚡ Sen odatlarning {$stat} tasini bajarding ({$battle->penalty_threshold}% yoki kam).\n"
+                ."Kelishilgan jazo: <b>{$penalty}</b>"
+            : "\n\n🛡 Jazodan qutulding: {$stat} bajarildi.";
     }
 
     public function runDailyClose(): void

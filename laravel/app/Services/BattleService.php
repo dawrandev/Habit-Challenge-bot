@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\BattleStatus;
 use App\Enums\Cadence;
+use App\Enums\StakeKind;
 use App\Models\Battle;
 use App\Models\BattleParticipant;
 use App\Models\Challenge;
@@ -15,8 +16,11 @@ use App\Services\Telegram\NotificationService;
 use App\Support\Clock;
 use App\Support\DateRange;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class BattleService
 {
@@ -25,12 +29,14 @@ class BattleService
         private readonly BattleAccess $access,
         private readonly NotificationService $notifications,
         private readonly BattleClosingService $closing,
+        private readonly BattleStakeService $stakes,
     ) {}
 
     /**
      * @param  array<int, array{template_key: ?string, name: string, icon: string, cadence: string, weekdays: array<int>}>  $challenges
+     * @param  array{prize: string, penalty: string}|null  $stakes  yaratuvchining yutuq/jazo varianti (SPEC §17)
      */
-    public function create(User $user, string $title, DateRange $period, array $challenges): Battle
+    public function create(User $user, string $title, DateRange $period, array $challenges, ?array $stakes = null): Battle
     {
         $start = $period->start;
 
@@ -61,6 +67,10 @@ class BattleService
                 'start_date' => $start->toDateString(),
                 // battle boshidagilar — ikkalasi qabul qilgan (pending emas)
             ]);
+        }
+
+        if ($stakes !== null) {
+            $this->stakes->propose($battle, $user, $stakes);
         }
 
         return $battle->fresh();
@@ -188,6 +198,8 @@ class BattleService
             'challenges' => $battle->challenges,
             'creator' => User::find($battle->created_by),
             'already_participant' => $battle->participants->contains('user_id', $user->id),
+            // Do'st o'z variantini yozishdan oldin yaratuvchinikini ko'radi
+            'stakes' => $this->stakes->creatorProposals($battle),
         ];
     }
 
@@ -259,16 +271,56 @@ class BattleService
         $battle->challenges()->findOrFail($challengeId)->delete();
     }
 
-    public function acceptByToken(User $user, string $token): Battle
+    /**
+     * Taklifni qabul qiladi.
+     *
+     * Garovli duelda do'st o'z yutuq/jazo variantini ham aytadi va duel
+     * `negotiating` ga o'tadi — u kelishuvdan keyin boshlanadi (SPEC §17).
+     * Garovsiz (eski) duel avvalgidek darhol `active`.
+     *
+     * @param  array{prize?: ?string, penalty?: ?string}|null  $stakes
+     */
+    public function acceptByToken(User $user, string $token, ?array $stakes = null): Battle
     {
         $battle = Battle::where('invite_token', $token)->firstOrFail();
 
-        BattleParticipant::firstOrCreate(
-            ['battle_id' => $battle->id, 'user_id' => $user->id],
-            ['accepted' => true],
-        );
+        // Qayta bosish (yoki ikkinchi qurilma) — jim o'tkazib yuboramiz
+        if ($this->access->isParticipant($battle->id, $user->id)) {
+            return $battle;
+        }
 
-        $battle->update(['status' => BattleStatus::Active]);
+        if (! $battle->hasStakes()) {
+            BattleParticipant::create(['battle_id' => $battle->id, 'user_id' => $user->id, 'accepted' => true]);
+            $battle->update(['status' => BattleStatus::Active]);
+
+            return $battle;
+        }
+
+        if ($battle->status !== BattleStatus::Pending) {
+            throw new ConflictHttpException('Bu taklif endi ochiq emas');
+        }
+
+        $prize = trim((string) ($stakes['prize'] ?? ''));
+        $penalty = trim((string) ($stakes['penalty'] ?? ''));
+        if ($prize === '' || $penalty === '') {
+            throw ValidationException::withMessages([
+                'stakes' => 'Yutuq va jazo bo\'yicha o\'z variantingni yoz',
+            ]);
+        }
+
+        DB::transaction(function () use ($battle, $user, $prize, $penalty) {
+            BattleParticipant::create(['battle_id' => $battle->id, 'user_id' => $user->id, 'accepted' => true]);
+            $this->stakes->propose($battle, $user, ['prize' => $prize, 'penalty' => $penalty]);
+            $battle->update(['status' => BattleStatus::Negotiating]);
+        });
+
+        $this->notifications->notify(
+            $this->access->otherTelegramIds($battle->id, $user->id),
+            "🤝 <b>{$user->first_name}</b> «{$battle->title}» taklifini qabul qildi!\n"
+                ."🏆 Uning yutuq varianti: «{$prize}»\n"
+                ."⚡ Jazo varianti: «{$penalty}»\n\n"
+                .'Endi kelishib oling — ilovada tanlang 👇',
+        );
 
         return $battle;
     }
@@ -283,7 +335,10 @@ class BattleService
         $battleIds = BattleParticipant::where('user_id', $user->id)->pluck('battle_id');
         $battles = Battle::with(['challenges', 'participants.user'])
             ->whereIn('id', $battleIds)
-            ->orderByRaw('CASE WHEN status = ? THEN 0 ELSE 1 END', [BattleStatus::Active->value])
+            ->orderByRaw('CASE WHEN status IN (?, ?) THEN 0 ELSE 1 END', [
+                BattleStatus::Active->value,
+                BattleStatus::Negotiating->value,
+            ])
             ->orderByDesc('id')
             ->get();
 
@@ -297,6 +352,7 @@ class BattleService
                 'battle' => $battle,
                 'players' => $this->players($battle, $user->id),
                 'result' => $this->result($battle, $user),
+                'prize' => $this->stakes->chosenText($battle, StakeKind::Prize),
                 ...$this->timeLeft($battle),
             ];
         })->all();
@@ -318,6 +374,7 @@ class BattleService
             'battle' => $battle,
             'players' => $this->players($battle, $me->id, withBreakdown: true),
             'challenges' => $battle->challenges,
+            'stakes' => $this->stakes->summary($battle, $me->id),
             'result' => $this->result($battle, $me),
             ...$this->timeLeft($battle),
         ];
@@ -342,6 +399,8 @@ class BattleService
             'winner' => $winner,
             'is_draw' => $winner === null,
             'you_won' => $winner !== null && $winner->id === $me->id,
+            'prize' => $this->stakes->chosenText($battle, StakeKind::Prize),
+            'penalty' => $this->stakes->chosenText($battle, StakeKind::Penalty),
         ];
     }
 
@@ -352,6 +411,11 @@ class BattleService
      */
     public function todayTasks(Battle $battle, User $user): array
     {
+        // Garovli duel kelishuvdan oldin hali boshlanmagan — kutilayotgan ish yo'q
+        if (! $battle->acceptsProofs()) {
+            return [];
+        }
+
         $today = Clock::todayLocal();
         $out = [];
 
@@ -391,10 +455,40 @@ class BattleService
             ];
             if ($withBreakdown) {
                 $row['breakdown'] = $result['breakdown'];
+                $row['habits'] = $this->habits($battle, $participant);
             }
 
             return $row;
         })->all();
+    }
+
+    /**
+     * Jazo chizig'iga nisbatan progress (SPEC §17).
+     *
+     * Tugagan duelda — muhrlangan qiymat (keyin challenge o'chirilsa ham
+     * natija o'zgarmasin), davom etayotganida — jonli hisob.
+     *
+     * @return array{done: int, expected: int, safe_at: int, penalized: ?bool}
+     */
+    private function habits(Battle $battle, BattleParticipant $participant): array
+    {
+        $rule = $this->stakes->rule($battle);
+
+        if ($battle->status === BattleStatus::Finished && $participant->habits_expected !== null) {
+            $done = (int) $participant->habits_done;
+            $expected = $participant->habits_expected;
+            $penalized = $participant->penalized;
+        } else {
+            ['done' => $done, 'expected' => $expected] = $this->scoring->habitProgress($battle, $participant->user_id);
+            $penalized = null;
+        }
+
+        return [
+            'done' => $done,
+            'expected' => $expected,
+            'safe_at' => $rule->safeAt($expected),
+            'penalized' => $penalized,
+        ];
     }
 
     /**

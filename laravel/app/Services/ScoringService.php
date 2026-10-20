@@ -70,6 +70,38 @@ class ScoringService
     }
 
     /**
+     * Jazo chegarasi uchun (SPEC §17): rejadagi va bajarilgan odatlar soni.
+     *
+     *   expected — har challenge bo'yicha uning effektiv boshlanishidan battle
+     *              OXIRIGACHA navbatdagi kunlar (butun reja, hozirgacha emas).
+     *   done     — shu kunlardagi tasdiqlangan bajarishlar.
+     *
+     * @return array{done: int, expected: int}
+     */
+    public function habitProgress(Battle $battle, int $userId): array
+    {
+        $tz = (string) config('telegram.timezone');
+        $end = CarbonImmutable::parse($battle->end_date->toDateString(), $tz);
+        $battleStart = CarbonImmutable::parse($battle->start_date->toDateString(), $tz);
+        $breakdown = $this->forParticipant($battle, $userId)['breakdown'];
+
+        $expected = 0;
+        foreach ($battle->challenges->where('pending', false) as $challenge) {
+            $challengeStart = CarbonImmutable::parse($challenge->start_date->toDateString(), $tz);
+            $effectiveStart = $challengeStart->greaterThan($battleStart) ? $challengeStart : $battleStart;
+
+            $expected += count($this->engine->dueDays(
+                $challenge->cadence,
+                $challenge->weekdaysList(),
+                $effectiveStart,
+                $end,
+            ));
+        }
+
+        return ['done' => (int) array_sum($breakdown), 'expected' => $expected];
+    }
+
+    /**
      * Tiebreaker uchun: ishtirokchining battle bo'yicha tasdiqlangan hisobotlari soni.
      */
     public function creditedCount(Battle $battle, int $userId): int

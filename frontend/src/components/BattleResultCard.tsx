@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import type { BattleResult, PlayerScore } from '../lib/api'
+import type { BattleResult, HabitProgress, PlayerScore } from '../lib/api'
 
 function fmt(n: number) {
   return Number.isInteger(n) ? String(n) : n.toFixed(1)
@@ -36,6 +36,24 @@ function Face({
         className={`max-w-[84px] truncate text-xs ${crowned ? 'text-text' : 'text-muted'}`}
       >
         {name}
+      </span>
+    </div>
+  )
+}
+
+/** Kim jazoga tortildi — ikkala tomon ham ko'rinadi (SPEC §17). */
+function PenaltyRow({ name, habits }: { name: string; habits?: HabitProgress }) {
+  const { t } = useTranslation()
+  if (!habits || habits.penalized === null) return null
+  const hit = habits.penalized
+  return (
+    <div className="flex items-center justify-between gap-2 text-xs">
+      <span className="truncate">{name}</span>
+      <span className={`shrink-0 ${hit ? 'text-reject' : 'text-approve'}`}>
+        {hit ? `⚡ ${t('stakes.penalized')}` : `🛡 ${t('stakes.escaped')}`}
+        <span className="tabular ml-1.5 font-mono text-muted">
+          {habits.done}/{habits.expected}
+        </span>
       </span>
     </div>
   )
@@ -148,6 +166,36 @@ export default function BattleResultCard({
               {result.winner?.first_name ?? '—'}
             </span>
           </p>
+        )}
+
+        {/* Garov — nima yutildi va kim jazoga tortildi */}
+        {(result.prize || result.penalty) && (
+          <div className="mt-4 space-y-2 border-t border-line/60 pt-4 text-left">
+            {result.prize && !draw && (
+              <div className="rounded-2xl border border-you/30 bg-you/5 px-3 py-2.5">
+                <p className="mb-0.5 text-[10px] tracking-[0.16em] text-muted uppercase">
+                  🎁 {won ? t('stakes.yourPrize') : t('stakes.agreedPrize')}
+                </p>
+                <p className="text-sm">{result.prize}</p>
+              </div>
+            )}
+            {result.penalty && (
+              <div className="rounded-2xl border border-reject/25 bg-reject/5 px-3 py-2.5">
+                <p className="mb-0.5 text-[10px] tracking-[0.16em] text-muted uppercase">
+                  ⚡ {t('stakes.penalty')}
+                </p>
+                <p className="mb-2 text-sm">{result.penalty}</p>
+                {me?.habits?.penalized === false && rival?.habits?.penalized === false ? (
+                  <p className="text-xs text-approve">{t('stakes.nobodyPenalized')}</p>
+                ) : (
+                  <div className="space-y-1">
+                    <PenaltyRow name={t('common.you')} habits={me?.habits} />
+                    <PenaltyRow name={rival?.user.first_name ?? '—'} habits={rival?.habits} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </section>

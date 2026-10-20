@@ -1,8 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
-import { useAcceptInvite, useInvite } from '../lib/api'
+import { useAcceptInvite, useInvite, type StakeTexts } from '../lib/api'
+import StakeInputs from '../components/StakeInputs'
+import { stakesFilled } from '../lib/stakes'
 
 export default function AcceptInvitePage() {
   const { token } = useParams()
@@ -10,6 +12,7 @@ export default function AcceptInvitePage() {
   const { t } = useTranslation()
   const { data, isLoading, isError } = useInvite(token!)
   const accept = useAcceptInvite()
+  const [stakes, setStakes] = useState<StakeTexts>({ prize: '', penalty: '' })
 
   useEffect(() => {
     if (data?.already_participant) {
@@ -47,14 +50,25 @@ export default function AcceptInvitePage() {
   const name = creator?.first_name ?? '—'
   const initial = (name[0] ?? '?').toUpperCase()
 
+  // Garovli duel: do'st ham o'z yutuq/jazo variantini aytadi (SPEC §17)
+  const theirs = data.stakes
+  const canAccept = !theirs || stakesFilled(stakes)
+
   function onAccept() {
-    accept.mutate(token!, {
-      onSuccess: (r) => navigate(`/battle/${r.battle_id}`, { replace: true }),
-    })
+    if (!canAccept) return
+    accept.mutate(
+      {
+        token: token!,
+        stakes: theirs
+          ? { prize: stakes.prize.trim(), penalty: stakes.penalty.trim() }
+          : undefined,
+      },
+      { onSuccess: (r) => navigate(`/battle/${r.battle_id}`, { replace: true }) },
+    )
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center bg-bg px-5">
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center bg-bg px-5 py-8">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -99,6 +113,41 @@ export default function AcceptInvitePage() {
           ))}
         </div>
 
+        {/* Garov: avval uning variantlari, keyin seniki */}
+        {theirs && (
+          <div className="mb-6 text-left">
+            <p className="mb-2 text-xs tracking-[0.18em] text-muted uppercase">
+              🤝 {t('stakes.section')}
+            </p>
+            <div className="mb-3 space-y-2">
+              {(['prize', 'penalty'] as const).map((kind) => (
+                <div
+                  key={kind}
+                  className="flex items-start gap-3 rounded-2xl border border-rival/30 bg-rival/5 px-4 py-2.5"
+                >
+                  <span className="text-lg">{kind === 'prize' ? '🏆' : '⚡'}</span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-rival">
+                      {t(`stakes.${kind}`)} · {t('stakes.rivalVariant', { name })}
+                    </p>
+                    <p className="text-sm">{theirs[kind] ?? '—'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mb-3 text-xs text-muted">{t('stakes.inviteHint')}</p>
+            <StakeInputs value={stakes} onChange={setStakes} threshold={theirs.threshold} />
+          </div>
+        )}
+
+        {accept.isError && (
+          <p className="mb-3 text-xs text-reject">
+            {String(accept.error).startsWith('Error: 409')
+              ? t('stakes.inviteClosed')
+              : t('stakes.needStakes')}
+          </p>
+        )}
+
         {/* Amallar */}
         <div className="flex gap-3">
           <button
@@ -111,7 +160,7 @@ export default function AcceptInvitePage() {
           <button
             type="button"
             onClick={onAccept}
-            disabled={accept.isPending}
+            disabled={!canAccept || accept.isPending}
             className="flex-1 rounded-2xl bg-you py-3.5 font-display text-lg text-bg shadow-[0_8px_30px_rgba(246,176,30,0.35)] transition active:scale-[0.98] disabled:opacity-60"
           >
             {accept.isPending ? '…' : t('invite.accept')}

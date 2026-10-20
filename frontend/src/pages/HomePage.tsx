@@ -101,8 +101,8 @@ export default function HomePage() {
   const [createOpen, setCreateOpen] = useState(false)
 
   // Home faqat DAVOM ETAYOTGANLARNI ko'rsatadi; tugaganlar profil arxivida
-  const activeBattles = (battles ?? []).filter(
-    (b) => b.battle.status === 'active' || b.battle.status === 'pending',
+  const activeBattles = (battles ?? []).filter((b) =>
+    ['active', 'pending', 'negotiating'].includes(b.battle.status),
   )
   const activeQuests = (quests ?? []).filter((q) => q.quest.status === 'active')
 
@@ -162,6 +162,13 @@ export default function HomePage() {
               const total = Math.max(myScore + rivalScore, 1)
               const youPct = Math.round((myScore / total) * 100)
               const leadingYou = myScore >= rivalScore
+              // Garovli duel kelishuvdan oldin — ball emas, holat muhim (SPEC §17)
+              const stage =
+                item.battle.status === 'negotiating'
+                  ? { cls: 'bg-you/15 text-you', label: `🤝 ${t('home.negotiating')}` }
+                  : item.battle.status === 'pending'
+                    ? { cls: 'bg-muted/15 text-muted', label: `⏳ ${t('home.waiting')}` }
+                    : null
               return (
                 <motion.div
                   key={item.battle.id}
@@ -182,12 +189,20 @@ export default function HomePage() {
                           {item.battle.title}
                         </span>
                       </div>
-                      <span className="tabular font-mono text-xs text-muted">
-                        {t('battle.timeLeft', {
-                          d: item.days_left,
-                          h: item.hours_left,
-                        })}
-                      </span>
+                      {stage ? (
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${stage.cls}`}
+                        >
+                          {stage.label}
+                        </span>
+                      ) : (
+                        <span className="tabular font-mono text-xs text-muted">
+                          {t('battle.timeLeft', {
+                            d: item.days_left,
+                            h: item.hours_left,
+                          })}
+                        </span>
+                      )}
                     </div>
 
                     <div className="mb-2 flex items-center justify-between">
@@ -212,6 +227,12 @@ export default function HomePage() {
                       />
                       <div className="bar-breathe-rival h-full flex-1 bg-rival" />
                     </div>
+
+                    {item.prize && (
+                      <p className="mt-2.5 truncate text-xs text-muted">
+                        🏆 <span className="text-text">{item.prize}</span>
+                      </p>
+                    )}
                   </Link>
                 </motion.div>
               )

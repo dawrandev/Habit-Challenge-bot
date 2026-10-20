@@ -35,6 +35,11 @@ class CreateBattleRequest extends FormRequest
             'challenges.*.proof_type' => ['nullable', Rule::enum(ProofType::class)],
             'challenges.*.weekdays' => ['array'],
             'challenges.*.weekdays.*' => ['integer', 'between:0,6'],
+            // Garov (SPEC §17) — ixtiyoriy API darajasida (eski mijozlar), lekin
+            // berilsa, ikkala variant ham bo'lishi shart
+            'stakes' => ['nullable', 'array'],
+            'stakes.prize' => ['required_with:stakes', 'string', 'min:2', 'max:200'],
+            'stakes.penalty' => ['required_with:stakes', 'string', 'min:2', 'max:200'],
         ];
     }
 }

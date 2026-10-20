@@ -382,3 +382,37 @@ va `ChatService` qaysi rejimda ishlayotganini **bilmaydi**.
 DB'da `challenges` va `chat_messages` jadvallari `battle_id` **yoki** `quest_id` ga
 tegishli (aynan bittasi). `completions`, `verifications`, `disputes` **o'zgarmagan** —
 ular faqat `challenge_id` ga bog'langan.
+
+---
+
+## 17. 🤝 Garov — yutuq va jazo (duel)
+
+> Duel boshlanishidan **oldin** ikki tomon ikki narsani kelishib oladi:
+> **🏆 yutuq** — g'olib nima oladi, **⚡ jazo** — odatlarning chegaradan kamini bajargan nima qiladi.
+> Reja va qarorlar: [`docs/STAKES-PLAN.md`](./docs/STAKES-PLAN.md).
+
+### Kelishuv oqimi
+1. **Yaratuvchi** duel bilan birga o'z yutuq va jazo variantini yozadi → `pending`.
+2. **Do'st** taklifda yaratuvchi variantlarini ko'radi, o'zinikini yozadi va qabul qiladi → `negotiating`.
+3. Har garov bo'yicha har kim **ikki variantdan birini** tanlaydi (ovoz):
+   - ovozlar **mos** → kelishildi (`agreement`);
+   - ovozlar **har xil** → chatda kelishish yoki **🎲 tanga** (50/50, `coin`).
+4. Ikkala garov hal bo'lishi bilan duel **o'zi boshlanadi** → `active`.
+
+- Garov hal bo'lguncha o'z variantini **tahrirlash** mumkin — o'sha garov bo'yicha ovozlar bekor bo'ladi.
+- Kelishuv paytida **isbot qabul qilinmaydi** (duel boshlanmagan), **chat ishlaydi**.
+- Kelishuv rejadagi boshlanishdan keyin tugasa, sanalar **davr uzunligi saqlangan holda**
+  bugunga suriladi — o'tib ketgan kunlar jarima bo'lmaydi.
+- **Garovsiz eski duellar** avvalgidek: qabul qilinishi bilan `active`, jazo yo'q.
+
+### Jazo qoidasi
+- `rejada` = har qabul qilingan odat bo'yicha, uning boshlanishidan duel oxirigacha
+  navbatdagi kunlar yig'indisi (cadence hisobga olinadi). Misol: 6 odat × 10 kun = **60**.
+- `bajarildi` = tasdiqlangan / avto-tasdiqlangan isbotlar.
+- **Jazo:** `bajarildi × 100 ≤ rejada × chegara` (chegara = **50%**). 60 dan 30 — jazo, 31 — xavfsiz.
+- Jazo g'alabaga **bog'liq emas**: ikkalasi ham, hech biri ham jazolanishi mumkin.
+- Chegara `battles.penalty_threshold` da saqlanadi; yakunda `habits_done`, `habits_expected`,
+  `penalized` `battle_participants` ga **muhrlanadi** (keyin challenge o'chirilsa ham o'zgarmaydi).
+- Duel davomida UI ikkala o'yinchi uchun **jazo chizig'i**gacha progressni jonli ko'rsatadi.
+- Yakunda bot xabari va natija ekrani yutuqni va kim jazoga tortilganini aytadi.
+

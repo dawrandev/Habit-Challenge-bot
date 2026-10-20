@@ -21,13 +21,14 @@ use Illuminate\Support\Carbon;
  * @property string $timezone
  * @property int $created_by
  * @property int|null $winner_id
+ * @property int $penalty_threshold
  * @property string $invite_token
  */
 class Battle extends Model implements ProofContext
 {
     protected $fillable = [
         'title', 'status', 'period_days', 'start_date', 'end_date',
-        'timezone', 'created_by', 'winner_id', 'invite_token',
+        'timezone', 'created_by', 'winner_id', 'invite_token', 'penalty_threshold',
     ];
 
     protected function casts(): array
@@ -36,6 +37,7 @@ class Battle extends Model implements ProofContext
             'status' => BattleStatus::class,
             'start_date' => 'date:Y-m-d',
             'end_date' => 'date:Y-m-d',
+            'penalty_threshold' => 'integer',
         ];
     }
 
@@ -52,6 +54,40 @@ class Battle extends Model implements ProofContext
     public function messages(): HasMany
     {
         return $this->hasMany(ChatMessage::class);
+    }
+
+    /** Yutuq/jazo variantlari — SPEC §17. */
+    public function stakes(): HasMany
+    {
+        return $this->hasMany(BattleStake::class);
+    }
+
+    /**
+     * Garovli duelmi. Garovsiz (eski) duellar avvalgidek, kelishuvsiz ishlaydi.
+     */
+    public function hasStakes(): bool
+    {
+        if ($this->relationLoaded('stakes')) {
+            return $this->stakes->isNotEmpty();
+        }
+
+        return $this->stakes()->exists();
+    }
+
+    /**
+     * Isbot qabul qiladimi.
+     *
+     * Garovli duel faqat kelishuvdan KEYIN boshlanadi — undan oldingi isbot
+     * sanalar surilganda baribir hisobdan chiqib qolardi. Garovsiz eski
+     * duellarda taklif kutilayotganda ham yuborish mumkin edi — o'zgarmaydi.
+     */
+    public function acceptsProofs(): bool
+    {
+        return match ($this->status) {
+            BattleStatus::Active => true,
+            BattleStatus::Pending => ! $this->hasStakes(),
+            default => false,
+        };
     }
 
     public function winner(): BelongsTo
@@ -93,7 +129,7 @@ class Battle extends Model implements ProofContext
     /** Duelda simmetrik: har ikkala ishtirokchi bajaradi. */
     public function canSubmit(int $userId): bool
     {
-        return $this->hasMember($userId);
+        return $this->hasMember($userId) && $this->acceptsProofs();
     }
 
     /** Duelda kesishgan tekshiruv: raqib tekshiradi, o'zini hech kim tekshirmaydi. */

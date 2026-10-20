@@ -6,6 +6,8 @@ import AddChallengeModal from '../components/AddChallengeModal'
 import BattleSettingsModal from '../components/BattleSettingsModal'
 import BattleResultCard from '../components/BattleResultCard'
 import GraceBanner from '../components/GraceBanner'
+import StakesCard from '../components/StakesCard'
+import StakesNegotiation from '../components/StakesNegotiation'
 import {
   useBattle,
   useDeleteChallenge,
@@ -163,6 +165,17 @@ export default function BattlePage() {
   const removeCh = useDeleteChallenge(id!)
   const dispute = useDisputeMut()
 
+  // Garovli duel kelishuvdan oldin hali boshlanmagan (SPEC §17)
+  const preStart =
+    !!data?.stakes &&
+    (data.battle.status === 'pending' || data.battle.status === 'negotiating')
+  // Kelishuv shu ekranda tugasa — panel darhol yo'qolmasin: tanga natijasi
+  // va "boshlandi" ekrani ko'rinsin, o'yinchi o'zi davom etsin.
+  const [negotiationOpen, setNegotiationOpen] = useState(false)
+  useEffect(() => {
+    if (preStart) setNegotiationOpen(true)
+  }, [preStart])
+
   if (isLoading || !data) {
     return (
       <PageTransition>
@@ -200,6 +213,8 @@ export default function BattlePage() {
 
   // Duel tugagan bo'lsa jonli tablo o'rniga yakuniy natija turadi
   const finished = data.battle.status !== 'active' && data.result !== null
+  const negotiating = !!data.stakes && (preStart || negotiationOpen)
+  const rivalName = rival?.user.first_name ?? '—'
 
   return (
     <PageTransition>
@@ -211,7 +226,7 @@ export default function BattlePage() {
           <h1 className="font-display text-2xl">{data.battle.title}</h1>
         </div>
         <div className="flex items-center gap-2">
-          {!finished && (
+          {!finished && !negotiating && (
             <div className="rounded-full border border-line bg-surface px-3 py-1.5 text-right">
               <p className="text-[10px] tracking-wide text-muted uppercase">
                 {t('battle.endsIn')}
@@ -232,7 +247,15 @@ export default function BattlePage() {
         </div>
       </header>
 
-      {finished && data.result ? (
+      {negotiating && data.stakes ? (
+        <StakesNegotiation
+          battle={data.battle}
+          stakes={data.stakes}
+          rivalName={rivalName}
+          onChat={() => navigate(`/battle/${data.battle.id}/chat`)}
+          onDone={() => setNegotiationOpen(false)}
+        />
+      ) : finished && data.result ? (
         <BattleResultCard
           result={data.result}
           me={me}
@@ -315,8 +338,18 @@ export default function BattlePage() {
       </section>
       )}
 
+      {/* Garov — nima uchun o'ynayapmiz, kim jazo chizig'iga yaqin */}
+      {!finished && !negotiating && data.stakes && (
+        <StakesCard
+          stakes={data.stakes}
+          me={me?.habits}
+          rival={rival?.habits}
+          rivalName={rivalName}
+        />
+      )}
+
       {/* Takliflar (pending challenge'lar) */}
-      {!finished && data.challenges.some((c) => c.pending) && (
+      {!finished && !negotiating && data.challenges.some((c) => c.pending) && (
         <section className="rise-in px-5 pt-6" style={{ animationDelay: '0.08s' }}>
           <h2 className="mb-2 text-xs tracking-[0.18em] text-muted uppercase">
             🆕 {t('crud.proposals')}
@@ -381,7 +414,7 @@ export default function BattlePage() {
           <h2 className="text-xs tracking-[0.18em] text-muted uppercase">
             {t('battle.byChallenge')}
           </h2>
-          {!finished && (
+          {!finished && !negotiating && (
             <button
               type="button"
               onClick={() => {
@@ -441,8 +474,8 @@ export default function BattlePage() {
         </div>
       </section>
 
-      {/* Bugun kutilyapti — tugagan duelda isbot qabul qilinmaydi */}
-      {!finished && (
+      {/* Bugun kutilyapti — tugagan yoki hali boshlanmagan duelda isbot qabul qilinmaydi */}
+      {!finished && !negotiating && (
       <section className="rise-in px-5 pt-6" style={{ animationDelay: '0.22s' }}>
         <h2 className="mb-2 text-xs tracking-[0.18em] text-muted uppercase">
           {t('battle.expectedToday')}

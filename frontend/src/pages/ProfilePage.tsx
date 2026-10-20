@@ -98,7 +98,7 @@ export default function ProfilePage() {
   const initial = (name[0] ?? '?').toUpperCase()
 
   const finishedBattles = (battles ?? []).filter(
-    (b: BattleListItem) => b.battle.status !== 'active' && b.battle.status !== 'pending',
+    (b: BattleListItem) => !['active', 'pending', 'negotiating'].includes(b.battle.status),
   )
   const finishedQuests = (quests ?? []).filter(
     (q: QuestListItem) => q.quest.status !== 'active',

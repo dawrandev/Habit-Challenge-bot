@@ -3,13 +3,35 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
-import { useCreateBattle, type ChallengeInput } from '../lib/api'
+import { useCreateBattle, type ChallengeInput, type StakeTexts } from '../lib/api'
 import { ICON_SET, TEMPLATES } from '../lib/challenges'
 import { useInviteLink } from '../lib/invite'
 import DateRangeField, {
   type DateRangeValue,
 } from '../components/DateRangeField'
-import { addDaysISO, todayISO } from '../lib/dates'
+import { addDaysISO, daysBetween, todayISO } from '../lib/dates'
+import StakeInputs from '../components/StakeInputs'
+import { stakesFilled } from '../lib/stakes'
+
+/** Standart jazo chegarasi — backend `penalty_threshold` bilan bir xil (SPEC §17). */
+const PENALTY_THRESHOLD = 50
+
+/**
+ * Davr bo'yicha rejadagi odatlar soni — backend hisobining aksi:
+ * har kun × har odat, "muayyan kunlar" bo'lsa faqat o'sha hafta kunlari.
+ */
+function plannedCount(items: ChallengeInput[], start: string, end: string): number {
+  const days = daysBetween(start, end)
+  let total = 0
+  for (let i = 0; i < days; i++) {
+    // 0 = Dushanba (backend bilan bir xil)
+    const weekday = (new Date(`${addDaysISO(start, i)}T00:00:00`).getDay() + 6) % 7
+    for (const c of items) {
+      if (c.cadence === 'daily' || c.weekdays.includes(weekday)) total++
+    }
+  }
+  return total
+}
 
 export default function NewBattlePage() {
   const { t } = useTranslation()
@@ -23,6 +45,7 @@ export default function NewBattlePage() {
     return { start, end: addDaysISO(start, 6) }
   })
   const [items, setItems] = useState<ChallengeInput[]>([])
+  const [stakes, setStakes] = useState<StakeTexts>({ prize: '', penalty: '' })
   const [custom, setCustom] = useState('')
   const [customIcon, setCustomIcon] = useState<string>('📖')
   const [token, setToken] = useState<string | null>(null)
@@ -89,14 +112,20 @@ export default function NewBattlePage() {
     )
   }
 
+  const ready = allItems.length > 0 && stakesFilled(stakes)
+  const days = daysBetween(period.start, period.end)
+  const planned = plannedCount(allItems, period.start, period.end)
+  const allDaily = allItems.every((c) => c.cadence === 'daily')
+
   function submit() {
-    if (!allItems.length) return
+    if (!ready) return
     create.mutate(
       {
         title: title.trim() || t('create.title'),
         start_date: period.start,
         end_date: period.end,
         challenges: allItems,
+        stakes: { prize: stakes.prize.trim(), penalty: stakes.penalty.trim() },
       },
       { onSuccess: (r) => setToken(r.invite_token) },
     )
@@ -313,18 +342,43 @@ export default function NewBattlePage() {
           </div>
         ))}
 
+        {/* Garov — yutuq va jazo (SPEC §17) */}
+        <div>
+          <label className="mb-1 block text-xs tracking-[0.18em] text-muted uppercase">
+            🤝 {t('stakes.section')}
+          </label>
+          <p className="mb-3 text-xs text-muted">{t('stakes.sectionHint')}</p>
+          <StakeInputs value={stakes} onChange={setStakes} threshold={PENALTY_THRESHOLD} />
+          {planned > 0 && (
+            <p className="mt-2 rounded-xl bg-reject/5 px-3 py-2 text-xs text-muted">
+              ⚡{' '}
+              {allDaily
+                ? t('stakes.planMath', {
+                    habits: allItems.length,
+                    days,
+                    total: planned,
+                    limit: Math.floor((planned * PENALTY_THRESHOLD) / 100),
+                  })
+                : t('stakes.planTotal', {
+                    total: planned,
+                    limit: Math.floor((planned * PENALTY_THRESHOLD) / 100),
+                  })}
+            </p>
+          )}
+        </div>
+
         {/* Yaratish */}
         <button
           type="button"
           onClick={submit}
-          disabled={!allItems.length || create.isPending}
+          disabled={!ready || create.isPending}
           className="w-full rounded-2xl bg-you py-4 font-display text-lg text-bg shadow-[0_8px_30px_rgba(246,176,30,0.35)] transition active:scale-[0.98] disabled:opacity-50"
         >
           {create.isPending ? '…' : t('create.create')}
         </button>
-        {!allItems.length && (
+        {!ready && (
           <p className="text-center text-xs text-muted">
-            {t('create.needChallenge')}
+            {!allItems.length ? t('create.needChallenge') : t('stakes.needStakes')}
           </p>
         )}
       </div>

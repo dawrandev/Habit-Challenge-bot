@@ -33,6 +33,7 @@ class BattleController extends Controller
                 $request->string('end_date')->toString(),
             ),
             challenges: $request->array('challenges'),
+            stakes: $request->filled('stakes') ? $request->array('stakes') : null,
         );
 
         return ['battle' => $battle, 'invite_token' => $battle->invite_token];
@@ -45,7 +46,13 @@ class BattleController extends Controller
 
     public function accept(Request $request, string $token)
     {
-        $battle = $this->battles->acceptByToken($request->user(), $token);
+        $data = $request->validate([
+            'stakes' => ['nullable', 'array'],
+            'stakes.prize' => ['nullable', 'string', 'min:2', 'max:200'],
+            'stakes.penalty' => ['nullable', 'string', 'min:2', 'max:200'],
+        ]);
+
+        $battle = $this->battles->acceptByToken($request->user(), $token, $data['stakes'] ?? null);
 
         return ['ok' => true, 'battle_id' => $battle->id];
     }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\BattleController;
+use App\Http\Controllers\Api\BattleStakeController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\CompletionController;
 use App\Http\Controllers\Api\ConfigController;
@@ -42,6 +43,11 @@ Route::middleware(['tg.auth', 'throttle:120,1'])->group(function () {
     Route::delete('/battles/{battle}/challenges/{challenge}', [BattleController::class, 'destroyChallenge']);
     Route::post('/battles/{battle}/challenges/{challenge}/accept', [BattleController::class, 'acceptChallenge']);
     Route::post('/battles/{battle}/challenges/{challenge}/reject', [BattleController::class, 'rejectChallenge']);
+    // Garov: yutuq va jazo kelishuvi (SPEC §17)
+    Route::patch('/battles/{battle}/stakes/{kind}', [BattleStakeController::class, 'update']);
+    Route::post('/battles/{battle}/stakes/{kind}/coin', [BattleStakeController::class, 'coin']);
+    Route::post('/battles/{battle}/stakes/{stake}/vote', [BattleStakeController::class, 'vote'])
+        ->whereNumber('stake');
     Route::get('/battles/{battle}/messages', [ChatController::class, 'index']);
     Route::post('/battles/{battle}/messages', [ChatController::class, 'store']);
 

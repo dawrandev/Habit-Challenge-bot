@@ -151,7 +151,7 @@ Ballar, o'tkazib yuborilgan kunlar va missiya natijasi shu yerda hisoblanadi:
 
 ## Holat
 
-**Tayyor:** ⚔️ Duel (ball, tug-of-war, g'olib) · 🎯 Missiya (guvoh, maqsad foizi, 5 chart) ·
+**Tayyor:** ⚔️ Duel (ball, tug-of-war, g'olib) · 🤝 Garov (yutuq/jazo kelishuvi, 50% jazo chizig'i — SPEC §17) · 🎯 Missiya (guvoh, maqsad foizi, 5 chart) ·
 jonli kamera isbot · inson tekshiruvi + 24s auto-tasdiq · nizo · chat · deep-link taklif ·
 4 til · Arena dizayn.
 
