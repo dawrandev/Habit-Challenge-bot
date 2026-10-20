@@ -109,12 +109,12 @@ Build natijasi repo'ga commit qilinadi — serverda `npm` kerak emas.
 
 ### 3. Serverda
 
-`laravel/` papkasi ichida:
+Repo ildizida ham, `laravel/` papkasi ichida ham bir xil:
 ```bash
 bash deploy.sh
 ```
-Repo ildizida bo'lsangiz — `bash laravel/deploy.sh`. Skript o'zi turgan
-papkaga o'tadi, shuning uchun qayerdan chaqirsangiz ham ishlaydi.
+Ildizdagi `deploy.sh` faqat `laravel/deploy.sh` ni chaqiradi. Skript o'zi
+turgan papkaga o'tadi, shuning uchun qayerdan chaqirsangiz ham ishlaydi.
 
 Nima qiladi: `git pull` · `composer install` · `migrate --force` · kesh ·
 webhook + menyu tugmasi · oxirida `battle:doctor` tekshiruvi.
