@@ -35,6 +35,99 @@ function VoteTag({ tone, label }: { tone: 'you' | 'rival'; label: string }) {
   )
 }
 
+/**
+ * Yutuqlar — tanlov YO'Q: har kim o'zi yutsa nima olishini aytgan, g'olibniki
+ * bajariladi (durangda — ikkalasi bir-birinikini). Shunchaki ko'rsatiladi,
+ * o'zingnikini duel boshlanguncha o'zgartirsa bo'ladi.
+ */
+function PrizePair({
+  battleId,
+  side,
+  rivalName,
+}: {
+  battleId: number
+  side: StakeSide
+  rivalName: string
+}) {
+  const { t } = useTranslation()
+  const edit = useEditStake(battleId)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+  const mine = side.options.find((o) => o.is_mine)
+  const theirs = side.options.find((o) => !o.is_mine)
+
+  return (
+    <div className="rounded-2xl border border-line bg-surface p-4">
+      <p className="mb-1 flex items-center gap-2 text-sm font-medium">
+        <span className="text-lg">🏆</span>
+        {t('stakes.prizes')}
+      </p>
+      <p className="mb-3 text-xs text-muted">{t('stakes.prizesHint')}</p>
+
+      <div className="space-y-2">
+        {mine &&
+          (editing ? (
+            <div className="rounded-2xl border border-you/60 bg-surface-2 p-3">
+              <p className="mb-1.5 text-[11px] text-you">{t('stakes.ifYouWin', { name: rivalName })}</p>
+              <input
+                autoFocus
+                value={draft}
+                maxLength={STAKE_MAX}
+                onChange={(e) => setDraft(e.target.value)}
+                className="mb-2 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-you"
+              />
+              <p className="mb-2 text-[11px] text-muted">{t('stakes.prizeEditHint', { name: rivalName })}</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="flex-1 rounded-xl border border-line py-2 text-xs text-muted"
+                >
+                  {t('stakes.cancel')}
+                </button>
+                <button
+                  type="button"
+                  disabled={draft.trim().length < 2 || edit.isPending}
+                  onClick={() =>
+                    edit.mutate({ kind: 'prize', text: draft.trim() }, { onSuccess: () => setEditing(false) })
+                  }
+                  className="flex-1 rounded-xl bg-you py-2 text-xs font-semibold text-bg disabled:opacity-50"
+                >
+                  {edit.isPending ? '…' : t('stakes.save')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-you/40 bg-you/5 px-4 py-3">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <span className="text-[11px] text-you">{t('stakes.ifYouWin', { name: rivalName })}</span>
+                <button
+                  type="button"
+                  aria-label={t('stakes.edit')}
+                  onClick={() => {
+                    setDraft(mine.text)
+                    setEditing(true)
+                  }}
+                  className="grid h-6 w-6 place-items-center rounded-full bg-surface text-xs text-muted"
+                >
+                  ✎
+                </button>
+              </div>
+              <p className="text-sm leading-snug">{mine.text}</p>
+            </div>
+          ))}
+        {theirs && (
+          <div className="rounded-2xl border border-rival/40 bg-rival/5 px-4 py-3">
+            <p className="mb-1 text-[11px] text-rival">{t('stakes.ifRivalWins', { name: rivalName })}</p>
+            <p className="text-sm leading-snug">{theirs.text}</p>
+          </div>
+        )}
+      </div>
+      <p className="mt-2.5 text-center text-[11px] text-muted">🤝 {t('stakes.drawRule')}</p>
+    </div>
+  )
+}
+
 function StakeBlock({
   battleId,
   kind,
@@ -59,6 +152,11 @@ function StakeBlock({
   const [draft, setDraft] = useState('')
 
   const title = kind === 'prize' ? t('stakes.prizeQ') : t('stakes.penaltyQ', { n: threshold })
+
+  // Yutuq tanlanmaydi (eski qoida bilan tanlangan bo'lsa — pastda "kelishildi" ko'rinadi)
+  if (kind === 'prize' && !side.chosen) {
+    return <PrizePair battleId={battleId} side={side} rivalName={rivalName} />
+  }
 
   if (side.chosen) {
     return (
@@ -309,7 +407,9 @@ export default function StakesNegotiation({
                 <span className="text-lg">{ICON[kind]}</span>
                 <div className="min-w-0">
                   <p className="text-[11px] text-muted">
-                    {t(`stakes.${kind}`)} · {t('stakes.yourVariant')}
+                    {kind === 'prize'
+                      ? t('stakes.ifYouWinGeneric')
+                      : `${t('stakes.penalty')} · ${t('stakes.yourVariant')}`}
                   </p>
                   <p className="text-sm">{stakes[kind].options[0]?.text ?? '—'}</p>
                 </div>
@@ -333,8 +433,6 @@ export default function StakesNegotiation({
       </section>
     )
   }
-
-  const settled = KINDS.filter((k) => stakes[k].chosen).length
 
   return (
     <section className="rise-in px-5">
@@ -361,20 +459,8 @@ export default function StakesNegotiation({
         </motion.div>
       ) : (
       <div className="mb-3 rounded-3xl border border-line bg-surface p-5 shadow-2xl shadow-black/40">
-        <div className="mb-1 flex items-center justify-between">
-          <h2 className="font-display text-xl">🤝 {t('stakes.negotiation')}</h2>
-          <span className="tabular rounded-full bg-surface-2 px-2.5 py-1 font-mono text-xs text-muted">
-            {settled}/2
-          </span>
-        </div>
+        <h2 className="mb-1 font-display text-xl">🤝 {t('stakes.negotiation')}</h2>
         <p className="text-sm text-muted">{t('stakes.negotiationHint')}</p>
-        <div className="mt-3 flex h-1.5 overflow-hidden rounded-full bg-surface-2">
-          <motion.div
-            className="h-full bg-approve"
-            initial={false}
-            animate={{ width: `${(settled / 2) * 100}%` }}
-          />
-        </div>
         <p className="mt-2 text-[11px] text-muted">
           {t('stakes.startsAfter')}. {t('stakes.datesShift')}.
         </p>
@@ -382,7 +468,8 @@ export default function StakesNegotiation({
       )}
 
       <div className="space-y-3">
-        {KINDS.map((kind) => (
+        {/* Jazo — harakat kutadi (ovoz), shuning uchun tepada; yutuqlar — ma'lumot */}
+        {(['penalty', 'prize'] as const).map((kind) => (
           <StakeBlock
             key={kind}
             battleId={battle.id}

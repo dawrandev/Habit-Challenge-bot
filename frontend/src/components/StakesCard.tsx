@@ -63,26 +63,35 @@ export default function StakesCard({
   rivalName: string
 }) {
   const { t } = useTranslation()
-  const prize = stakes.prize.chosen?.text
   const penalty = stakes.penalty.chosen?.text
-  if (!prize || !penalty) return null
+  // Eski qoida: bitta yutuq ikkalasi uchun tanlangan. Yangi: har kimning o'zi aytgani.
+  const legacyPrize = stakes.prize.chosen?.text
+  const myPrize = legacyPrize ?? stakes.prize.options.find((o) => o.is_mine)?.text
+  const rivalPrize = legacyPrize ?? stakes.prize.options.find((o) => !o.is_mine)?.text
+  if (!penalty || !myPrize) return null
 
   return (
     <section className="rise-in px-5 pt-4" style={{ animationDelay: '0.05s' }}>
       <div className="rounded-3xl border border-line bg-surface p-4">
-        <div className="mb-4 grid grid-cols-2 gap-2">
+        <div className="mb-2 grid grid-cols-2 gap-2">
           <div className="rounded-2xl border border-you/30 bg-you/5 px-3 py-2.5">
-            <p className="mb-0.5 text-[10px] tracking-[0.16em] text-muted uppercase">
-              🏆 {t('stakes.prize')}
+            <p className="mb-0.5 text-[10px] tracking-[0.12em] text-you uppercase">
+              🏆 {t('stakes.youWinShort')}
             </p>
-            <p className="text-sm leading-snug">{prize}</p>
+            <p className="text-sm leading-snug">{myPrize}</p>
           </div>
-          <div className="rounded-2xl border border-reject/30 bg-reject/5 px-3 py-2.5">
-            <p className="mb-0.5 text-[10px] tracking-[0.16em] text-muted uppercase">
-              ⚡ {t('stakes.penalty')}
+          <div className="rounded-2xl border border-rival/30 bg-rival/5 px-3 py-2.5">
+            <p className="mb-0.5 truncate text-[10px] tracking-[0.12em] text-rival uppercase">
+              🎁 {t('stakes.rivalWinsShort', { name: rivalName })}
             </p>
-            <p className="text-sm leading-snug">{penalty}</p>
+            <p className="text-sm leading-snug">{rivalPrize ?? '—'}</p>
           </div>
+        </div>
+        <div className="mb-4 rounded-2xl border border-reject/30 bg-reject/5 px-3 py-2.5">
+          <p className="mb-0.5 text-[10px] tracking-[0.16em] text-muted uppercase">
+            ⚡ {t('stakes.penalty')}
+          </p>
+          <p className="text-sm leading-snug">{penalty}</p>
         </div>
 
         <p className="mb-2 text-[11px] text-muted">

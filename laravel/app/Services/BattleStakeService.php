@@ -23,12 +23,14 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Garov — yutuq va jazo kelishuvi (SPEC §17).
+ * Garov — yutuq va jazo (SPEC §17).
  *
- * Har o'yinchi har garov turi bo'yicha bittadan variant aytadi. Keyin har
- * kim ikki variantdan birini tanlaydi: ovozlar mos kelsa — kelishildi;
- * har xil bo'lsa — chatda kelishadi yoki tanga tashlanadi. Ikkala garov
- * hal bo'lgach duel o'zi boshlanadi.
+ * Yutuq: har o'yinchi O'ZI yutsa raqibi unga nima qilib berishini aytadi.
+ * Tanlov yo'q — duel oxirida g'olibning yutug'i bajariladi.
+ *
+ * Jazo: har o'yinchi bittadan variant aytadi, keyin ikkalasi bittasini
+ * tanlaydi: ovozlar mos kelsa — kelishildi; har xil bo'lsa — chatda
+ * kelishadi yoki tanga tashlanadi. Jazo hal bo'lgach duel o'zi boshlanadi.
  */
 class BattleStakeService
 {
@@ -56,10 +58,11 @@ class BattleStakeService
     }
 
     /**
-     * O'z variantini o'zgartiradi — garov hal bo'lmaguncha.
+     * O'z variantini o'zgartiradi — duel boshlanmaguncha.
      *
-     * O'sha tur bo'yicha OVOZLAR bekor qilinadi: eski matnga berilgan ovoz
-     * jimgina yangisiga o'tib ketmasin.
+     * Jazo bo'yicha OVOZLAR bekor qilinadi: eski matnga berilgan ovoz
+     * jimgina yangisiga o'tib ketmasin. Yutuqda ovoz yo'q — faqat raqib
+     * xabardor qilinadi (u nimaga rozi bo'layotganini bilsin).
      */
     public function edit(Battle $battle, User $user, StakeKind $kind, string $text): BattleStake
     {
@@ -82,18 +85,22 @@ class BattleStakeService
             BattleStakeVote::where('battle_id', $battle->id)->where('kind', $kind->value)->delete();
         });
 
+        $name = e($user->first_name);
         $this->notifyOthers(
             $battle,
             $user,
-            "✏️ <b>{$user->first_name}</b> {$this->kindLabel($kind)} variantini o'zgartirdi:\n"
-                ."«{$stake->text}»\n\nQaytadan tanlang 👇",
+            $kind === StakeKind::Prize
+                ? "✏️ <b>{$name}</b> yutug'ini o'zgartirdi.\n"
+                    ."🏆 Agar {$name} yutsa, sen unga: <b>".e($stake->text).'</b>'
+                : "✏️ <b>{$name}</b> jazo variantini o'zgartirdi:\n"
+                    .'«'.e($stake->text)."»\n\nQaytadan tanlang 👇",
         );
 
         return $stake;
     }
 
     /**
-     * Ikki variantdan birini tanlaydi. Ikkalasi bir xilini tanlasa — kelishildi.
+     * Jazo variantlaridan birini tanlaydi. Ikkalasi bir xilini tanlasa — kelishildi.
      */
     public function vote(Battle $battle, User $user, int $stakeId): BattleStake
     {
@@ -103,6 +110,7 @@ class BattleStakeService
         $stake = $battle->stakes()->find($stakeId)
             ?? throw new NotFoundHttpException('Variant topilmadi');
 
+        $this->assertVotable($stake->kind);
         if ($this->chosen($battle, $stake->kind) !== null) {
             throw new ConflictHttpException('Bu garov allaqachon kelishilgan');
         }
@@ -117,15 +125,17 @@ class BattleStakeService
 
         if ($agreed) {
             $stake->update(['chosen_via' => StakeDecision::Agreement]);
-            $this->notifyAll($battle, "🤝 Kelishildi! {$this->kindIcon($stake->kind)} "
-                .ucfirst($this->kindLabel($stake->kind)).": <b>{$stake->text}</b>");
-            $this->startIfSettled($battle);
+            // Boshlanish xabari kelishuvni ham aytadi — ikki xabar ketma-ket ketmasin
+            if (! $this->startIfSettled($battle)) {
+                $this->notifyAll($battle, "🤝 Kelishildi! {$this->kindIcon($stake->kind)} "
+                    .ucfirst($this->kindLabel($stake->kind)).': <b>'.e($stake->text).'</b>');
+            }
         } else {
             $this->notifyOthers(
                 $battle,
                 $user,
-                "🗳 <b>{$user->first_name}</b> {$this->kindLabel($stake->kind)} bo'yicha tanlov qildi:\n"
-                    ."«{$stake->text}»\n\nSen ham tanla 👇",
+                '🗳 <b>'.e($user->first_name)."</b> {$this->kindLabel($stake->kind)} bo'yicha tanlov qildi:\n"
+                    .'«'.e($stake->text)."»\n\nSen ham tanla 👇",
             );
         }
 
@@ -139,6 +149,7 @@ class BattleStakeService
     {
         $this->assertParticipant($battle, $user);
         $this->assertNegotiating($battle);
+        $this->assertVotable($kind);
 
         if ($this->chosen($battle, $kind) !== null) {
             throw new ConflictHttpException('Bu garov allaqachon kelishilgan');
@@ -156,8 +167,9 @@ class BattleStakeService
         ]);
         $winner->update(['chosen_via' => StakeDecision::Coin]);
 
-        $this->notifyAll($battle, "🎲 <b>{$user->first_name}</b> tanga tashladi!\n"
-            ."{$this->kindIcon($kind)} ".ucfirst($this->kindLabel($kind)).": <b>{$winner->text}</b>");
+        // Tanga natijasi boshlanish xabaridan oldin kelsin — kim tashlagani ko'rinsin
+        $this->notifyAll($battle, '🎲 <b>'.e($user->first_name)."</b> tanga tashladi!\n"
+            ."{$this->kindIcon($kind)} ".ucfirst($this->kindLabel($kind)).': <b>'.e($winner->text).'</b>');
         $this->startIfSettled($battle);
 
         return $winner->fresh();
@@ -165,6 +177,9 @@ class BattleStakeService
 
     /**
      * Battle sahifasi uchun garov holati. Garovsiz duelda — null.
+     *
+     * Yutuqda `my_vote`/`rival_vote` doim null (ovoz yo'q); `chosen` faqat
+     * eski qoida bilan kelishilgan duellarda to'ladi.
      *
      * @return array<string, mixed>|null
      */
@@ -230,6 +245,21 @@ class BattleStakeService
         return $this->chosen($battle, $kind)?->text;
     }
 
+    /**
+     * O'yinchi yutsa nima oladi — o'zi aytgan yutuq.
+     *
+     * Eski qoida bilan (ovoz/tanga orqali) bitta yutuq tanlangan duellarda
+     * o'sha kelishuv ikkala tomonga amal qilishda davom etadi.
+     */
+    public function prizeFor(Battle $battle, int $userId): ?string
+    {
+        return $this->chosenText($battle, StakeKind::Prize)
+            ?? $battle->stakes()
+                ->where('kind', StakeKind::Prize->value)
+                ->where('proposed_by', $userId)
+                ->value('text');
+    }
+
     public function rule(Battle $battle): PenaltyRule
     {
         return new PenaltyRule($battle->penalty_threshold);
@@ -256,18 +286,16 @@ class BattleStakeService
     }
 
     /**
-     * Ikkala garov hal bo'lsa — duel boshlanadi.
+     * Jazo hal bo'lsa — duel boshlanadi. Boshlangan bo'lsa true.
      *
      * Kelishuv rejadagi boshlanish sanasidan keyin tugagan bo'lsa, davr
      * uzunligini saqlab sanalar bugunga suriladi: o'tib ketgan kunlar
      * hech kim aybdor bo'lmagan jarimaga aylanmasin.
      */
-    private function startIfSettled(Battle $battle): void
+    public function startIfSettled(Battle $battle): bool
     {
-        foreach (StakeKind::cases() as $kind) {
-            if ($this->chosen($battle, $kind) === null) {
-                return;
-            }
+        if ($this->chosen($battle, StakeKind::Penalty) === null) {
+            return false;
         }
 
         DB::transaction(function () use ($battle) {
@@ -293,10 +321,37 @@ class BattleStakeService
             $battle->save();
         });
 
-        $this->notifyAll($battle, "🔥 <b>{$battle->title}</b> boshlandi!\n"
-            ."🏆 Yutuq: {$this->chosenText($battle, StakeKind::Prize)}\n"
-            ."⚡ Jazo ({$battle->penalty_threshold}% va kam bajarganga): {$this->chosenText($battle, StakeKind::Penalty)}\n\n"
-            .'Omad! 💪');
+        $this->announceStart($battle);
+
+        return true;
+    }
+
+    /**
+     * "Boshlandi" xabari — har kimga o'z nuqtai nazaridan: o'zi yutsa nima
+     * oladi va raqib yutsa nima qilib beradi.
+     */
+    private function announceStart(Battle $battle): void
+    {
+        $battle->load('participants.user');
+        $penalty = e((string) $this->chosenText($battle, StakeKind::Penalty));
+        $title = e($battle->title);
+
+        foreach ($battle->participants as $me) {
+            $rival = $battle->participants->first(fn ($p) => $p->user_id !== $me->user_id);
+            if ($me->user?->telegram_id === null || $rival === null) {
+                continue;
+            }
+
+            $rivalName = e($rival->user?->first_name ?? '?');
+            $myPrize = e((string) $this->prizeFor($battle, $me->user_id));
+            $rivalPrize = e((string) $this->prizeFor($battle, $rival->user_id));
+
+            $this->notifications->notify([$me->user->telegram_id], "🔥 <b>{$title}</b> boshlandi!\n\n"
+                ."🏆 Sen yutsang, {$rivalName} senga: <b>{$myPrize}</b>\n"
+                ."🎁 {$rivalName} yutsa, sen unga: <b>{$rivalPrize}</b>\n"
+                ."⚡ Jazo ({$battle->penalty_threshold}% va kam bajarganga): <b>{$penalty}</b>\n\n"
+                .'Omad! 💪');
+        }
     }
 
     private function assertParticipant(Battle $battle, User $user): void
@@ -310,6 +365,14 @@ class BattleStakeService
     {
         if ($battle->status !== BattleStatus::Negotiating) {
             throw new ConflictHttpException('Kelishuv bosqichi emas');
+        }
+    }
+
+    /** Yutuq tanlanmaydi — har kim o'zinikini aytadi, g'olibniki bajariladi. */
+    private function assertVotable(StakeKind $kind): void
+    {
+        if ($kind === StakeKind::Prize) {
+            throw new ConflictHttpException('Yutuq tanlanmaydi — g\'olibning o\'z yutug\'i bajariladi');
         }
     }
 

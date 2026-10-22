@@ -19,6 +19,12 @@ export function photoUrl(fileId?: string | null): string | null {
   return `/api/photo/${encodeURIComponent(fileId)}`
 }
 
+/** Va'da isboti (foto/video) proxy — Range qo'llaydi, video o'ynaydi. */
+export function mediaUrl(fileId?: string | null): string | null {
+  if (!fileId || fileId.startsWith('dev-')) return null
+  return `/api/media/${encodeURIComponent(fileId)}`
+}
+
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const isForm = options.body instanceof FormData
   const res = await fetch(`/api${path}`, {
@@ -128,20 +134,47 @@ export type StakesState = {
 
 export type StakeTexts = { prize: string; penalty: string }
 
+/** Va'da bajarilganining isboti — tarix uchun (SPEC §17). */
+export type PromiseProof = {
+  file_id: string
+  media_type: 'photo' | 'video'
+  note: string | null
+  created_at: string
+}
+
+/**
+ * Duel yakunidagi va'da: yutqazgan → g'olibning yutug'i (durangda ikkalasi
+ * bir-biriga), jazoga tortilgan → jazo.
+ */
+export type Obligation = {
+  kind: StakeKind
+  debtor: User
+  /** Kimga — yutuqda bor, jazoda null */
+  creditor: User | null
+  text: string
+  /** Men bajarishim kerak */
+  is_mine: boolean
+  /** Men uchun bajariladi */
+  for_me: boolean
+  fulfillment: PromiseProof | null
+}
+
 /** Yakuniy natija — faqat duel tugagach to'ldiriladi. */
 export type BattleResult = {
   winner: User | null
   is_draw: boolean
   you_won: boolean
+  /** G'olibning yutug'i (durangda null — unda ikkalasi bir-biriga, obligations'da) */
   prize?: string | null
   penalty?: string | null
+  obligations?: Obligation[]
 }
 
 export type BattleListItem = {
   battle: Battle
   players: PlayerScore[]
   result: BattleResult | null
-  /** Kelishilgan yutuq (bo'lsa) */
+  /** Men yutsam nima olaman (bo'lsa) */
   prize?: string | null
   days_left: number
   hours_left: number
@@ -495,3 +528,63 @@ export const useEditStake = (battleId: number | string) =>
       body: JSON.stringify({ text: vars.text }),
     }),
   )
+
+// ---- Va'da isboti (SPEC §17) ---------------------------------------------------
+/** Backend chegarasi bilan bir xil — Telegram 20MB dan kattasini qaytarmaydi. */
+export const PROMISE_MAX_BYTES = 20 * 1024 * 1024
+
+/** Yuklash xatosi turi — UI tushunarli xabar ko'rsatsin. */
+export class UploadError extends Error {
+  readonly code: 'too_large' | 'invalid' | 'network' | 'server'
+  constructor(code: UploadError['code']) {
+    super(code)
+    this.code = code
+  }
+}
+
+/**
+ * FormData'ni progress bilan yuboradi (fetch yuklash progressini bermaydi —
+ * videoda "qotib qoldimi?" degan savol tug'ilmasin).
+ */
+function uploadWithProgress<T>(path: string, body: FormData, onProgress: (pct: number) => void): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `/api${path}`)
+    for (const [k, v] of Object.entries(authHeaders())) xhr.setRequestHeader(k, v)
+    xhr.setRequestHeader('Accept', 'application/json')
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
+    }
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) return resolve(JSON.parse(xhr.responseText) as T)
+      if (xhr.status === 413) return reject(new UploadError('too_large'))
+      if (xhr.status === 422) return reject(new UploadError('invalid'))
+      reject(new UploadError('server'))
+    }
+    xhr.onerror = () => reject(new UploadError('network'))
+    xhr.send(body)
+  })
+}
+
+export function useFulfillPromise(battleId: number | string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (vars: { kind: StakeKind; file: File; note?: string; onProgress: (pct: number) => void }) => {
+      const fd = new FormData()
+      fd.append('file', vars.file, vars.file.name)
+      if (vars.note?.trim()) fd.append('note', vars.note.trim())
+      return uploadWithProgress<{ obligations: Obligation[] }>(
+        `/battles/${battleId}/promises/${vars.kind}`,
+        fd,
+        vars.onProgress,
+      )
+    },
+    onSuccess: (r) => {
+      // Darhol keshga — isbot kartada kutmasdan paydo bo'lsin
+      qc.setQueryData<BattleDetail>(['battle', String(battleId)], (old) =>
+        old?.result ? { ...old, result: { ...old.result, obligations: r.obligations } } : old,
+      )
+      qc.invalidateQueries({ queryKey: ['battles'] })
+    },
+  })
+}

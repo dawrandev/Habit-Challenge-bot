@@ -168,33 +168,11 @@ export default function BattleResultCard({
           </p>
         )}
 
-        {/* Garov — nima yutildi va kim jazoga tortildi */}
-        {(result.prize || result.penalty) && (
-          <div className="mt-4 space-y-2 border-t border-line/60 pt-4 text-left">
-            {result.prize && !draw && (
-              <div className="rounded-2xl border border-you/30 bg-you/5 px-3 py-2.5">
-                <p className="mb-0.5 text-[10px] tracking-[0.16em] text-muted uppercase">
-                  🎁 {won ? t('stakes.yourPrize') : t('stakes.agreedPrize')}
-                </p>
-                <p className="text-sm">{result.prize}</p>
-              </div>
-            )}
-            {result.penalty && (
-              <div className="rounded-2xl border border-reject/25 bg-reject/5 px-3 py-2.5">
-                <p className="mb-0.5 text-[10px] tracking-[0.16em] text-muted uppercase">
-                  ⚡ {t('stakes.penalty')}
-                </p>
-                <p className="mb-2 text-sm">{result.penalty}</p>
-                {me?.habits?.penalized === false && rival?.habits?.penalized === false ? (
-                  <p className="text-xs text-approve">{t('stakes.nobodyPenalized')}</p>
-                ) : (
-                  <div className="space-y-1">
-                    <PenaltyRow name={t('common.you')} habits={me?.habits} />
-                    <PenaltyRow name={rival?.user.first_name ?? '—'} habits={rival?.habits} />
-                  </div>
-                )}
-              </div>
-            )}
+        {/* Jazo chizig'i — kim nechta bajardi. Nima qilinadi — pastdagi "Va'dalar"da */}
+        {result.penalty && (
+          <div className="mt-4 space-y-1 border-t border-line/60 pt-4 text-left">
+            <PenaltyRow name={t('common.you')} habits={me?.habits} />
+            <PenaltyRow name={rival?.user.first_name ?? '—'} habits={rival?.habits} />
           </div>
         )}
       </div>

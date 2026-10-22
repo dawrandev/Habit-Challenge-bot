@@ -5,6 +5,7 @@ import PageTransition from '../components/PageTransition'
 import AddChallengeModal from '../components/AddChallengeModal'
 import BattleSettingsModal from '../components/BattleSettingsModal'
 import BattleResultCard from '../components/BattleResultCard'
+import PromisesCard from '../components/PromisesCard'
 import GraceBanner from '../components/GraceBanner'
 import LateTasks from '../components/LateTasks'
 import StakesCard from '../components/StakesCard'
@@ -262,12 +263,21 @@ export default function BattlePage() {
           onDone={() => setNegotiationOpen(false)}
         />
       ) : finished && data.result ? (
-        <BattleResultCard
-          result={data.result}
-          me={me}
-          rival={rival}
-          title={data.battle.title}
-        />
+        <>
+          <BattleResultCard
+            result={data.result}
+            me={me}
+            rival={rival}
+            title={data.battle.title}
+          />
+          {/* Kim kimga nima qiladi + bajarilganining foto/video isboti (SPEC §17) */}
+          <PromisesCard
+            battleId={data.battle.id}
+            obligations={data.result.obligations ?? []}
+            penalty={data.result.penalty}
+            rivalName={rivalName}
+          />
+        </>
       ) : (
       <section className="rise-in px-5" style={{ animationDelay: '0.02s' }}>
         <div className="rounded-3xl border border-line bg-surface p-5 shadow-2xl shadow-black/40">

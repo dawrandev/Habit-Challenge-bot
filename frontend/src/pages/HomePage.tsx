@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import PageTransition from '../components/PageTransition'
 import LateTasks from '../components/LateTasks'
+import OwedPromises from '../components/OwedPromises'
 import { QuestCard } from './QuestsPage'
 import { useBattles, type PlayerScore } from '../lib/api'
 import { useQuests } from '../lib/quests'
@@ -127,6 +128,8 @@ export default function HomePage() {
 
       {/* Kecha unutilgan hisobotlar — eng ko'zga ko'rinadigan joyda */}
       <LateTasks className="pb-5" />
+      {/* Tugagan duellardan bajarilmagan va'dalarim — tarixga isbot kutyapti */}
+      <OwedPromises className="pb-5" />
 
       {loading && (
         <div className="grid place-items-center py-16 text-muted">
@@ -234,7 +237,7 @@ export default function HomePage() {
 
                     {item.prize && (
                       <p className="mt-2.5 truncate text-xs text-muted">
-                        🏆 <span className="text-text">{item.prize}</span>
+                        🏆 {t('stakes.youWinShort')}: <span className="text-text">{item.prize}</span>
                       </p>
                     )}
                   </Link>

@@ -243,13 +243,18 @@ export default function ProfilePage() {
               const rival = b.players.find((p) => !p.is_me)
               const draw = b.result?.is_draw ?? false
               const won = b.result?.you_won ?? false
+              // Va'dalar holati — arxiv ham tarix: nima bajarildi, nima qoldi
+              const promises = b.result?.obligations ?? []
+              const kept = promises.filter((o) => o.fulfillment).length
               return (
                 <ArchiveRow
                   key={`b-${b.battle.id}`}
                   icon="⚔️"
                   to={`/battle/${b.battle.id}`}
                   title={b.battle.title}
-                  subtitle={`${t('common.you')} vs ${rival?.user.first_name ?? '—'}`}
+                  subtitle={`${t('common.you')} vs ${rival?.user.first_name ?? '—'}${
+                    promises.length ? ` · 🤝 ${kept}/${promises.length}` : ''
+                  }`}
                   badge={
                     draw
                       ? t('result.draw')

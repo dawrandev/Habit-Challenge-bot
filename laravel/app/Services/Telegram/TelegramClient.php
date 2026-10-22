@@ -63,6 +63,22 @@ class TelegramClient
     }
 
     /**
+     * Videoni yuboradi, natijani qaytaradi (va'da isboti — SPEC §17).
+     * Telegram mp4 bo'lmagan formatni hujjat sifatida saqlashi mumkin —
+     * chaqiruvchi `video` ham, `document` ham bo'lishini kutsin.
+     *
+     * @return array<string, mixed>
+     */
+    public function sendVideo(int|string $chatId, string $contents, string $filename = 'proof.mp4'): array
+    {
+        $response = Http::timeout(120)
+            ->attach('video', $contents, $filename)
+            ->post($this->method('sendVideo'), ['chat_id' => $chatId, 'supports_streaming' => 'true']);
+
+        return (array) $response->json('result', []);
+    }
+
+    /**
      * WebApp tugmasi bilan xabar (bot /start) — SPEC §2, §14.
      */
     public function sendWebApp(int|string $chatId, string $text, string $buttonText, string $url): void

@@ -386,19 +386,29 @@ ular faqat `challenge_id` ga bog'langan.
 
 ## 17. 🤝 Garov — yutuq va jazo (duel)
 
-> Duel boshlanishidan **oldin** ikki tomon ikki narsani kelishib oladi:
-> **🏆 yutuq** — g'olib nima oladi, **⚡ jazo** — odatlarning chegaradan kamini bajargan nima qiladi.
+> Duel boshlanishidan **oldin**:
+> **🏆 yutuq** — har kim **o'zi yutsa** raqibi unga nima qilib berishini aytadi (tanlov yo'q);
+> **⚡ jazo** — odatlarning chegaradan kamini bajargan nima qiladi (ikkalasi bittasini tanlaydi).
 > Reja va qarorlar: [`docs/STAKES-PLAN.md`](./docs/STAKES-PLAN.md).
 
+### Yutuq (2026-10-22 dan)
+- Misol: men — "yutsam, menga kitob sovg'a qilasan"; do'stim — "yutsam, kinoga bilet olib berasan".
+  Ikkalasi ham yutqazsa nima qilishini oldindan biladi.
+- **G'olibning o'z yutug'i** bajariladi: yutqazgan uni g'olib uchun qiladi.
+- **Durang** (ball teng — masalan, ikkalasi hammasini bajardi): **ikkalasi ham** bir-birining yutug'ini bajaradi.
+- Ovoz/tanga yo'q; o'z yutug'ini duel boshlanguncha tahrirlash mumkin (raqibga xabar boradi).
+- Eski qoida bilan bitta yutuq tanlab bo'lingan duellar o'sha kelishuv bilan qoladi.
+
 ### Kelishuv oqimi
-1. **Yaratuvchi** duel bilan birga o'z yutuq va jazo variantini yozadi → `pending`.
-2. **Do'st** taklifda yaratuvchi variantlarini ko'radi, o'zinikini yozadi va qabul qiladi → `negotiating`.
-3. Har garov bo'yicha har kim **ikki variantdan birini** tanlaydi (ovoz):
+1. **Yaratuvchi** duel bilan birga o'z yutug'ini va jazo variantini yozadi → `pending`.
+2. **Do'st** taklifda yaratuvchinikini ko'radi ("Ali yutsa — sen unga: …"), o'zinikini yozib qabul qiladi → `negotiating`.
+3. **Jazo** bo'yicha har kim **ikki variantdan birini** tanlaydi (ovoz):
    - ovozlar **mos** → kelishildi (`agreement`);
    - ovozlar **har xil** → chatda kelishish yoki **🎲 tanga** (50/50, `coin`).
-4. Ikkala garov hal bo'lishi bilan duel **o'zi boshlanadi** → `active`.
+4. Jazo hal bo'lishi bilan duel **o'zi boshlanadi** → `active`. Bot har kimga shaxsiy xabar yuboradi:
+   "Sen yutsang, Ali senga: … / Ali yutsa, sen unga: … / Jazo: …".
 
-- Garov hal bo'lguncha o'z variantini **tahrirlash** mumkin — o'sha garov bo'yicha ovozlar bekor bo'ladi.
+- Jazo hal bo'lguncha o'z variantini **tahrirlash** mumkin — jazo bo'yicha ovozlar bekor bo'ladi.
 - Kelishuv paytida **isbot qabul qilinmaydi** (duel boshlanmagan), **chat ishlaydi**.
 - Kelishuv rejadagi boshlanishdan keyin tugasa, sanalar **davr uzunligi saqlangan holda**
   bugunga suriladi — o'tib ketgan kunlar jarima bo'lmaydi.
@@ -414,6 +424,17 @@ ular faqat `challenge_id` ga bog'langan.
   `penalized` `battle_participants` ga **muhrlanadi** (keyin challenge o'chirilsa ham o'zgarmaydi).
 - Duel davomida UI ikkala o'yinchi uchun **jazo chizig'i**gacha progressni jonli ko'rsatadi.
 - Yakunda bot xabari va natija ekrani yutuqni va kim jazoga tortilganini aytadi.
+
+### Va'dalar — yakundan keyin (tarix)
+- Duel tugagach har kimga bot **"Endi nima bo'ladi"** xabarini yuboradi: o'zi nima bajaradi
+  (kim uchun), unga nima bajariladi, jazo holati + **📸 Isbot yuklash** tugmasi (natija sahifasini ochadi).
+- Qarzlar natijadan hisoblanadi: yutqazgan → g'olibning yutug'i (durangda ikki tomonlama),
+  jazoga tortilgan → jazo.
+- Qarzdor bajarganini **rasm yoki video** (20 MB gacha, galereyadan ham) + izoh bilan yuklaydi →
+  `stake_fulfillments`; raqibga bot xabari boradi. Qayta yuklash eskisini almashtiradi.
+- Natija sahifasida **"Va'dalar"** kartasi — isbotlar tarix sifatida qoladi; Asosiy sahifada
+  bajarilmagan va'dalar banneri, profil arxivida `🤝 1/2` holati.
+- Media `/api/media/{file_id}` orqali beriladi (diskda keshlanadi, Range — video iOS'da o'ynaydi).
 
 ---
 

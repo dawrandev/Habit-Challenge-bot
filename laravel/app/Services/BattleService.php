@@ -30,6 +30,7 @@ class BattleService
         private readonly NotificationService $notifications,
         private readonly BattleClosingService $closing,
         private readonly BattleStakeService $stakes,
+        private readonly StakeObligationService $obligations,
     ) {}
 
     /**
@@ -278,8 +279,8 @@ class BattleService
     /**
      * Taklifni qabul qiladi.
      *
-     * Garovli duelda do'st o'z yutuq/jazo variantini ham aytadi va duel
-     * `negotiating` ga o'tadi — u kelishuvdan keyin boshlanadi (SPEC §17).
+     * Garovli duelda do'st o'z yutug'ini va jazo variantini ham aytadi va duel
+     * `negotiating` ga o'tadi — u jazo kelishilgach boshlanadi (SPEC §17).
      * Garovsiz (eski) duel avvalgidek darhol `active`.
      *
      * @param  array{prize?: ?string, penalty?: ?string}|null  $stakes
@@ -318,12 +319,13 @@ class BattleService
             $battle->update(['status' => BattleStatus::Negotiating]);
         });
 
+        $name = e($user->first_name);
         $this->notifications->notify(
             $this->access->otherTelegramIds($battle->id, $user->id),
-            "🤝 <b>{$user->first_name}</b> «{$battle->title}» taklifini qabul qildi!\n"
-                ."🏆 Uning yutuq varianti: «{$prize}»\n"
-                ."⚡ Jazo varianti: «{$penalty}»\n\n"
-                .'Endi kelishib oling — ilovada tanlang 👇',
+            "🤝 <b>{$name}</b> «".e($battle->title)."» taklifini qabul qildi!\n\n"
+                ."🎁 {$name} yutsa, sen unga: <b>".e($prize)."</b>\n"
+                .'⚡ Uning jazo varianti: «'.e($penalty)."»\n\n"
+                .'Endi jazoni kelishib oling — ilovada tanlang 👇',
         );
 
         return $battle;
@@ -356,7 +358,8 @@ class BattleService
                 'battle' => $battle,
                 'players' => $this->players($battle, $user->id),
                 'result' => $this->result($battle, $user),
-                'prize' => $this->stakes->chosenText($battle, StakeKind::Prize),
+                // Shu o'yinchi yutsa nima oladi
+                'prize' => $this->stakes->prizeFor($battle, $user->id),
                 ...$this->timeLeft($battle),
             ];
         })->all();
@@ -403,8 +406,11 @@ class BattleService
             'winner' => $winner,
             'is_draw' => $winner === null,
             'you_won' => $winner !== null && $winner->id === $me->id,
-            'prize' => $this->stakes->chosenText($battle, StakeKind::Prize),
+            // G'olibning o'z yutug'i; durangda hech kim hech narsa olmaydi
+            'prize' => $winner !== null ? $this->stakes->prizeFor($battle, $winner->id) : null,
             'penalty' => $this->stakes->chosenText($battle, StakeKind::Penalty),
+            // Kim kimga nima qarzdor + bajarilganining isboti (tarix)
+            'obligations' => $this->obligations->forBattle($battle, $me->id),
         ];
     }
 

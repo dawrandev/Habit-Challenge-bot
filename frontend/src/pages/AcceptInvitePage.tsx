@@ -128,7 +128,9 @@ export default function AcceptInvitePage() {
                   <span className="text-lg">{kind === 'prize' ? '🏆' : '⚡'}</span>
                   <div className="min-w-0">
                     <p className="text-[11px] text-rival">
-                      {t(`stakes.${kind}`)} · {t('stakes.rivalVariant', { name })}
+                      {kind === 'prize'
+                        ? t('stakes.ifRivalWins', { name })
+                        : `${t('stakes.penalty')} · ${t('stakes.rivalVariant', { name })}`}
                     </p>
                     <p className="text-sm">{theirs[kind] ?? '—'}</p>
                   </div>

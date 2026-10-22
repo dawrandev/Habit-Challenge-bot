@@ -3,10 +3,18 @@
 > Duelga ikki yangi qoida qo'shiladi. Ikkalasi ham **battle boshlanishidan oldin**
 > ikki tomon kelishuvi bilan belgilanadi.
 
+> **2026-10-22 o'zgarishi — yutuq endi tanlanmaydi.** Har kim *o'zi yutsa* raqibi unga
+> nima qilishini aytadi; g'olibniki bajariladi, durangda ikkalasi bir-birinikini.
+> Duel faqat **jazo** kelishilgach boshlanadi. Yakundan keyin qarzdor bajarganini
+> rasm/video bilan yuklaydi (`stake_fulfillments`) — tarix. Batafsil: SPEC §17.
+> Production'dagi duellar: `2026_10_22_000001_prizes_are_per_player` migratsiyasi yutuq
+> ovozlarini tozalaydi va faqat yutuqni kutib qolgan duellarni boshlaydi; yutug'i
+> allaqachon tanlangan duellar o'sha kelishuv bilan qoladi. Quyidagi asl reja tarix uchun.
+
 ## 1. Talablar
 
-1. **🏆 Yutuq.** G'olib nima olishi oldindan kelishiladi. Har tomon bittadan
-   variant aytadi, ikkalasidan **bittasi** tanlanadi.
+1. **🏆 Yutuq.** ~~G'olib nima olishi oldindan kelishiladi. Har tomon bittadan
+   variant aytadi, ikkalasidan bittasi tanlanadi.~~ → har kim o'z yutug'ini aytadi (yuqoriga qarang).
 2. **⚡ Jazo.** Battle davomida **rejadagi odatlarning 50% yoki undan kamini**
    bajargan o'yinchi jazoga tortiladi. Jazo ham yutuq kabi kelishiladi.
    - Misol: 6 odat × 10 kun = 60 ta. 30 ta yoki kamroq bajarsa — jazo. 31 tasi xavfsiz.

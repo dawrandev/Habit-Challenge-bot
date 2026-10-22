@@ -10,8 +10,10 @@ use App\Http\Controllers\Api\ConfigController;
 use App\Http\Controllers\Api\DayController;
 use App\Http\Controllers\Api\DevController;
 use App\Http\Controllers\Api\MeController;
+use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\PhotoController;
 use App\Http\Controllers\Api\QuestController;
+use App\Http\Controllers\Api\StakeFulfillmentController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\WebhookController;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +22,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/config', ConfigController::class);
 Route::get('/day', DayController::class);
 Route::get('/photo/{fileId}', [PhotoController::class, 'show'])->middleware('throttle:60,1');
+// Va'da isboti (foto/video) — video bo'laklab (Range) o'qiladi, so'rov ko'p bo'ladi
+Route::get('/media/{fileId}', [MediaController::class, 'show'])->middleware('throttle:300,1');
 Route::post('/telegram/webhook', [WebhookController::class, 'handle']);
 
 // Telegram initData auth
@@ -48,6 +52,8 @@ Route::middleware(['tg.auth', 'throttle:120,1'])->group(function () {
     Route::post('/battles/{battle}/stakes/{kind}/coin', [BattleStakeController::class, 'coin']);
     Route::post('/battles/{battle}/stakes/{stake}/vote', [BattleStakeController::class, 'vote'])
         ->whereNumber('stake');
+    // Duel tugagach: va'da bajarildi — foto/video isbot
+    Route::post('/battles/{battle}/promises/{kind}', [StakeFulfillmentController::class, 'store']);
     Route::get('/battles/{battle}/messages', [ChatController::class, 'index']);
     Route::post('/battles/{battle}/messages', [ChatController::class, 'store']);
 

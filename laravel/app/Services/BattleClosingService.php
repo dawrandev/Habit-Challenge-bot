@@ -11,6 +11,7 @@ use App\Enums\StakeKind;
 use App\Models\Battle;
 use App\Models\BattleParticipant;
 use App\Models\Completion;
+use App\Models\User;
 use App\Services\Telegram\NotificationService;
 use App\Support\Clock;
 use App\Support\LateWindow;
@@ -26,6 +27,7 @@ class BattleClosingService
         private readonly WinnerResolver $winnerResolver,
         private readonly NotificationService $notifications,
         private readonly BattleStakeService $stakes,
+        private readonly StakeObligationService $obligations,
     ) {}
 
     /**
@@ -215,13 +217,15 @@ class BattleClosingService
     }
 
     /**
-     * Natijani ikkala o'yinchiga e'lon qiladi.
+     * Natijani ikkala o'yinchiga e'lon qiladi — har kimga o'z nuqtai nazaridan:
+     * kim yutdi, ENDI SEN NIMA QILASAN, senga nima qilinadi (SPEC §17).
+     * Tugma natija sahifasini ochadi — va'da isbotini o'sha yerda yuklaydi.
      */
     private function announce(Battle $battle): void
     {
         $battle->loadMissing('participants.user');
-        $prize = $this->stakes->chosenText($battle, StakeKind::Prize);
-        $penalty = $this->stakes->chosenText($battle, StakeKind::Penalty);
+        $title = e($battle->title);
+        $obligations = $this->obligations->obligations($battle);
 
         $winner = $battle->winner_id !== null
             ? $battle->participants->firstWhere('user_id', $battle->winner_id)?->user
@@ -233,38 +237,54 @@ class BattleClosingService
                 continue;
             }
 
-            if ($winner === null) {
-                $text = "🤝 <b>{$battle->title}</b> — durang!\nHech kim yutmadi.";
-            } elseif ($winner->id === $user->id) {
-                $text = "🏆 <b>{$battle->title}</b> — SEN YUTDING!\nTabriklaymiz 🔥";
-                if ($prize !== null) {
-                    $text .= "\n\n🎁 Yutug'ing: <b>{$prize}</b>";
-                }
-            } else {
-                $text = "🏁 <b>{$battle->title}</b> yakunlandi.\nG'olib: <b>{$winner->first_name}</b>";
-                if ($prize !== null) {
-                    $text .= "\n\n🎁 Kelishilgan yutuq: <b>{$prize}</b> — va'da — qarz 😉";
-                }
-            }
+            $text = match (true) {
+                $winner === null => "🤝 <b>{$title}</b> — DURANG!\nIkkalangiz teng kuchli chiqdingiz 💪",
+                $winner->id === $user->id => "🏆 <b>{$title}</b> — SEN YUTDING!\nTabriklaymiz 🔥",
+                default => "🏁 <b>{$title}</b> yakunlandi.\nG'olib: <b>".e($winner->first_name).'</b>',
+            };
 
-            $text .= $this->penaltyLine($battle, $participant, $penalty);
+            $mine = array_filter($obligations, fn (array $o) => $o['debtor']->id === $user->id);
+            $toMe = array_filter($obligations, fn (array $o) => $o['creditor']?->id === $user->id);
+            $text .= $this->owedLines($battle, $participant, $mine, $toMe);
 
-            $this->notifications->notify([$user->telegram_id], $text);
+            [$button, $hint] = match (true) {
+                $mine !== [] => ['📸 Isbot yuklash', "\n\n📸 Bajarganingda rasm yoki video yukla — tarixda qoladi, keyin birga eslaysizlar."],
+                $toMe !== [] => ['🏁 Natijani ko\'rish', "\n\nU bajarganda isbotini shu yerda ko'rasan 👀"],
+                default => ['🏁 Natijani ko\'rish', ''],
+            };
+
+            $this->notifications->notifyWithApp((int) $user->telegram_id, $text.$hint, $button, "/battle/{$battle->id}");
         }
     }
 
-    private function penaltyLine(Battle $battle, BattleParticipant $participant, ?string $penalty): string
+    /**
+     * "Endi nima bo'ladi" bo'limi: o'zing bajaradiganlar, senga bajariladiganlar
+     * va jazo holati.
+     *
+     * @param  array<array{kind: StakeKind, debtor: User, creditor: ?User, text: string}>  $mine
+     * @param  array<array{kind: StakeKind, debtor: User, creditor: ?User, text: string}>  $toMe
+     */
+    private function owedLines(Battle $battle, BattleParticipant $me, array $mine, array $toMe): string
     {
-        if ($penalty === null || $participant->penalized === null) {
-            return '';
+        $lines = [];
+
+        foreach ($toMe as $o) {
+            $lines[] = '🎁 '.e($o['debtor']->first_name).' senga: <b>'.e($o['text']).'</b>';
         }
 
-        $stat = "{$participant->habits_done}/{$participant->habits_expected}";
+        foreach ($mine as $o) {
+            $lines[] = $o['kind'] === StakeKind::Prize
+                ? '🤝 Sen '.e($o['creditor']?->first_name ?? '?').' uchun: <b>'.e($o['text']).'</b>'
+                : '⚡ Jazo — sen bajarasan: <b>'.e($o['text']).'</b>'
+                    ."\n     (odatlarning {$me->habits_done}/{$me->habits_expected} tasi — {$battle->penalty_threshold}% yoki kam)";
+        }
 
-        return $participant->penalized
-            ? "\n\n⚡ Sen odatlarning {$stat} tasini bajarding ({$battle->penalty_threshold}% yoki kam).\n"
-                ."Kelishilgan jazo: <b>{$penalty}</b>"
-            : "\n\n🛡 Jazodan qutulding: {$stat} bajarildi.";
+        // Jazodan qutulganini ham aytamiz — bu ham natija
+        if ($me->penalized === false && $this->stakes->chosenText($battle, StakeKind::Penalty) !== null) {
+            $lines[] = "🛡 Jazodan qutulding: {$me->habits_done}/{$me->habits_expected} bajarildi";
+        }
+
+        return $lines === [] ? '' : "\n\n<b>Endi nima bo'ladi:</b>\n".implode("\n", $lines);
     }
 
     public function runDailyClose(): void
